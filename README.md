@@ -1,9 +1,11 @@
+[![Build Status](https://jenkins-balloonmail.rhcloud.com/buildStatus/icon?job=balloon)](https://jenkins-balloonmail.rhcloud.com/job/balloon/)
+
 # Server on cloud
 
-Currently the server is deployed on a free cloud service [OpenShift](https://www.openshift.com/). The server url is (app-balloonmail.rhcloud.com), so you can connect the android to the cloud server directly by 
+Currently the server is deployed on a free cloud service [OpenShift](https://www.openshift.com/). The server url is (app-balloonmail.rhcloud.com), so you can connect the android to the cloud server directly by
 putting the server url in the `server_url` field in the `values/strings` file in the android application.
 
-# Setup locally 
+# Setup locally
 
 1. Install [Node.js 64-bit](https://nodejs.org/dist/v4.4.3/node-v4.4.3-x64.msi) or [Node.js 32-bit](https://nodejs.org/dist/v4.4.3/node-v4.4.3-x86.msi)
 2. Install [MongoDB 64-bit](https://fastdl.mongodb.org/win32/mongodb-win32-x86_64-3.2.5-signed.msi) or [Mongodb 32-bit](https://fastdl.mongodb.org/win32/mongodb-win32-i386-3.2.5-signed.msi)
