@@ -20,11 +20,11 @@ putting the server url in the `server_url` field in the `values/strings` file in
 
 1. Open a temrinal and type `mongod` for 64-bit versions and `mongod --storageEngine=mmapv1` for 32-bit versions.
 2. Open another terminal, navigate to the server directory and type `npm start`
-3. No the server is up and running on `http://localhost:3000`
+3. No the server is up and running on `http://localhost:8080`
 
 
 # Connecting to the server locally
 
 1. Ensure the android device and the pc are on the same network.
 2. Get the ip address of the pc using `ipconfig` in terminal
-3. Now type this ip in the `server_url` field in the `values/strings` file in the android application
+3. Now in the globals file in the android app put the IPv4 under the wireless section and the port is 8080.
