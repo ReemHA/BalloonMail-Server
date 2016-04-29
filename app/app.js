@@ -9,9 +9,14 @@ var auth = require("./middleware/auth")
 
 //setup express
 var app = express();
-app.use(morgan('combined', {"stream": logger.stream}));
+app.use(morgan('tiny', {"stream": logger.stream}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(function (req, res, next) {
+
+    logger.log("debug",'Request json body: %j', {"a":1},{});
+    next();
+});
 
 //open database
 mongoose.connection.on('error', function (err) {
