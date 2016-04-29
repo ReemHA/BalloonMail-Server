@@ -1,6 +1,7 @@
 var express = require('express');
 var path = require('path');
-var logger = require('morgan');
+var morgan = require('morgan');
+var logger = require('./utils/logger');
 var bodyParser = require('body-parser');
 var mongoose = require("mongoose");
 var config = require("./config");
@@ -8,7 +9,7 @@ var auth = require("./middleware/auth")
 
 //setup express
 var app = express();
-app.use(logger('dev'));
+app.use(morgan('combined', {"stream": logger.stream}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -29,10 +30,6 @@ app.get("/health", function(req, res){
 app.use("/token",require("./routes/tokens"));
 
 
-//test route after authenticate
-app.get("/test",auth, function (req, res) {
-   res.json({result:{user_id:req.user_id}}) ;
-});
 
 
 // catch 404 and forward to error handler
