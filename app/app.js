@@ -14,7 +14,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(function (req, res, next) {
 
-    logger.log("debug",'Request json body: %j', {"a":1},{});
+    logger.log("debug",'Request json body: %j', req.body,{});
     next();
 });
 
