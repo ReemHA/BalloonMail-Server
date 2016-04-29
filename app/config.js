@@ -4,6 +4,6 @@ module.exports = {
 
 
     //don't touch
-    android_client_id : "287579982910-064askhvmcdr3b634t5dfpfc93gds6cl.apps.googleusercontent.com",
+    web_client_id : "113808451021-5bbh4fp49eo7tdq8j93arot30tt49q8j.apps.googleusercontent.com",
     secret: "reem-hamdy-#4988%6-secret"
 };
