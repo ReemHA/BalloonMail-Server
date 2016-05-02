@@ -3,34 +3,36 @@ var router = express.Router();
 var User = require("../models/user");
 var jwt = require("jsonwebtoken");
 var config = require("../config");
+var logger = require("../utils/logger");
+var pipe = require("../middleware/pipe");
 //google auth
 var GoogleOAuth2 = require("google-auth-library").prototype.OAuth2;
 var googleOauth = new GoogleOAuth2();
 
 
 //google
-router.post("/google", function (req, res, next) {
+router.post("/google",pipe, function (req, res, next) {
     var token = req.body.access_token;
     var name = req.body.user_name;
     //check for token in post body
     if(!token)
     {
-        console.log("access_token field not found in POST body");
+        logger.debug("access_token field not found in POST body");
         return next(new Error("access_token field not found in POST body"));
     }
     //check for user name in post body
     if(!name)
     {
-        console.log("user_name field not found in POST body");
+        logger.debug("user_name field not found in POST body");
         return next(new Error("user_name field not found in POST body"));
     }
 
     //verify the token
-    googleOauth.verifyIdToken(token,config.android_client_id,function(err, login){
+    googleOauth.verifyIdToken(token,config.web_client_id,function(err, login){
         //is there an error in verification?
         if(err)
         {
-            console.log(err.message);
+            logger.debug(err.message);
             return next(new Error("Couldn't verify token."));
         }
 
@@ -41,7 +43,7 @@ router.post("/google", function (req, res, next) {
             //check if there is error while checking database
             if(err)
             {
-                console.log(err.message);
+                logger.debug(err.message);
                 return next(new Error("Internal server error."));
             }
 
@@ -49,7 +51,7 @@ router.post("/google", function (req, res, next) {
             if(user)
             {
                 //user found create jwt and return
-                res.json({result:{api_token: creatJWT(user.id)},created:false});
+                res.json({api_token: creatJWT(user.id),created:false});
             }
             else
             {
@@ -64,12 +66,12 @@ router.post("/google", function (req, res, next) {
                     //was there error while saving?
                     if(err)
                     {
-                        console.log("Error saving user: " + err.message);
+                        logger.debug("Error saving user: " + err.message);
                         return next(new Error("Internal server error."));
                     }
 
                     //successfuly saved user now return the jwt token
-                    res.json({result:{api_token: creatJWT(user.id), created:true}});
+                    res.json({api_token: creatJWT(user.id), created:true});
                 })
             }
         });

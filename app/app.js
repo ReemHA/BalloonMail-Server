@@ -1,26 +1,21 @@
 var express = require('express');
 var path = require('path');
-var morgan = require('morgan');
 var logger = require('./utils/logger');
 var bodyParser = require('body-parser');
 var mongoose = require("mongoose");
 var config = require("./config");
-var auth = require("./middleware/auth")
+var auth = require("./middleware/auth");
+var pipe = require("../middleware/pipe");
 
 //setup express
 var app = express();
-app.use(morgan('tiny', {"stream": logger.stream}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(function (req, res, next) {
 
-    logger.log("debug",'Request json body: %j', req.body,{});
-    next();
-});
 
 //open database
 mongoose.connection.on('error', function (err) {
-    console.log("database connection error %s", err.message);
+    logger.info("database connection error %s", err.message);
 });
 mongoose.connect(config.database);
 
@@ -33,8 +28,7 @@ app.get("/health", function(req, res){
 
 //--- routes ---//
 app.use("/token",require("./routes/tokens"));
-
-
+app.get("/balloons",pipe, auth, require("./routes/balloons"));
 
 
 // catch 404 and forward to error handler
@@ -46,7 +40,7 @@ app.use(function(req, res, next) {
 
 // error handlers
 app.use(function(err, req, res, next) {
-    res.json({result:{error:err.message}});
+    res.json({error:err.message});
 });
 
 

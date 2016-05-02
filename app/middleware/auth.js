@@ -14,7 +14,7 @@ module.exports = function (req, res, next) {
             jwt.verify(token, config.secret, function (err, payload) {
                 if(err)
                 {
-                    console.log("Authorizing: " + err.message);
+                    logger.debug("Authorizing: " + err.message);
                     return next(new Error("Unauthorized access."));
                 }
                 //success add user id to req object and call next
@@ -26,6 +26,6 @@ module.exports = function (req, res, next) {
 
     }
 
-    console.log("Couldn't find authorization Bearer in head.");
+    logger.debug("Couldn't find authorization Bearer in head.");
     next(new Error("Couldn't find api token in request."))
 };
