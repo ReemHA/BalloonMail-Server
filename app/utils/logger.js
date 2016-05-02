@@ -15,10 +15,10 @@ var logger = new winston.Logger({
     ],
     exitOnError: false
 });
-
-module.exports = logger;
+winston.level = 'debug';
+module.exports = process.env.OPENSHIFT_LOG_DIR ? logger:winston;
 module.exports.stream = {
     write: function(message, encoding){
-        logger.info(message);
+        module.exports.info(message);
     }
 };
