@@ -5,7 +5,7 @@ var bodyParser = require('body-parser');
 var mongoose = require("mongoose");
 var config = require("./config");
 var auth = require("./middleware/auth");
-var pipe = require("../middleware/pipe");
+var pipe = require("./middleware/pipe");
 
 //setup express
 var app = express();
