@@ -2,46 +2,42 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var Counter = require("./counter");
 var config = require("../config");
+var Promise = require("promise");
 
+
+var groups_counter = "groups";
 
 var groupSchema = new Schema({
     group_id: {type: Number, required: true, unique: true}
 });
 
-//methods
-groupSchema.methods.isLast = function (cb) {
-    Counter.getLastGroupId(function (err, counter) {
-        var result = null;
-        if(!err)
-        {
-           result = counter.current_group_id == this.group_id;
-        }
+groupSchema.statics.counter_name = groups_counter;
 
-        cb(err, result);
-    });
+groupSchema.statics.getLastGroupId = function () {
+    return this.findOne({for: groups_counter}).exec();
 };
 
-groupSchema.statics.addUser = function (cb) {
-    //update current group by 1 and retrieve the new vount
+groupSchema.methods.isLast = function () {
+    return this.getLastGroupId()
+        .then(function(counter){
+            return Promise.from(Math.ceil(counter.count/config.group_limit) == this.group_id);
+        })
+
+};
+
+groupSchema.statics.addUser = function () {
+    //update current group by 1 and retrieve the new count
     var promise =  Counter.findOneAndUpdate(
             {for: Counter.groups_counter_name},
             {$inc: {count: 1}},
             {new: true}
         ).exec();
 
-    promise
+    return promise
         .then(function(counter)
         {
-            //if counter is greater than one
-            if(counter.count > config.group_limit)
-            {
-
-            }
-
-        })
-        .catch(function (err) {
-            cb(err)
-        })
+            return Promise.from(counter.count/config.group_limit);
+        });
 
 };
 

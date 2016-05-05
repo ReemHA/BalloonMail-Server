@@ -5,11 +5,10 @@ module.exports = function()
 {
     //create groups counter
     Counter.update(
-        {for: Counter.groups_counter_name},
+        {for: Group.counter_name},
         {$setOnInsert:
             {
-                for: Counter.groups_counter_name,
-                current_group_id: 1,
+                for: Group.counter_name,
                 count: 0
             }
         },

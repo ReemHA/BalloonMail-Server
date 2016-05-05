@@ -15,14 +15,14 @@ var userSchema = new Schema({
 //methods
 userSchema.pre("save", function (next) {
     var doc = this;
-    Group.addUser(function (err, group_id) {
-        if(err)
+    Group.addUser()
+        .then(function(group_id)
         {
-            return next(err);
-        }
-        doc.group_id = group_id;
-        next();
-    });
+            doc.group_id = group_id;
+        })
+        .catch(function (err) {
+           next(err);
+        });
 
 });
 

@@ -13,10 +13,6 @@ router.post("/create",...middle, function (req, res, next) {
         next(new Error("text field not found in request."));
         return;
     }
-    
-    
-
-    
 
 });
 
