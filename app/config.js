@@ -1,7 +1,7 @@
 module.exports = {
     
     database: (process.env.MONGODB_URL || "mongodb://localhost/") + "balloon",
-
+    group_limit: 256,
 
     //don't touch
     alchemy_key: "4eacae0efe2509a24654baaac00cd2b1120abdf3",

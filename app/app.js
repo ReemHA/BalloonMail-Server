@@ -4,8 +4,8 @@ var logger = require('./utils/logger');
 var bodyParser = require('body-parser');
 var mongoose = require("mongoose");
 var config = require("./config");
-var auth = require("./middleware/auth");
-var pipe = require("./middleware/pipe");
+var middle = require("./middleware/middle");
+var init_database = require("./models/init_data");
 
 //setup express
 var app = express();
@@ -19,6 +19,8 @@ mongoose.connection.on('error', function (err) {
 });
 mongoose.connect(config.database);
 
+//set required initial database data if not already there
+init_database();
 
 // used by openshift cloud service
 app.get("/health", function(req, res){
@@ -28,7 +30,7 @@ app.get("/health", function(req, res){
 
 //--- routes ---//
 app.use("/token",require("./routes/tokens"));
-app.get("/balloons",pipe, auth, require("./routes/balloons"));
+app.use("/balloons",require("./routes/balloons"));
 
 
 // catch 404 and forward to error handler

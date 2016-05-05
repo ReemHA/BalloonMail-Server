@@ -1,6 +1,7 @@
 var jwt = require("jsonwebtoken");
 var config = require("../config");
-
+var logger = require("../utils/logger");
+var misc = require("../utils/misc");
 
 
 module.exports = function (req, res, next) {
@@ -18,7 +19,7 @@ module.exports = function (req, res, next) {
                     return next(new Error("Unauthorized access."));
                 }
                 //success add user id to req object and call next
-                req.user_id = payload.sub;
+                req.user_id = misc.getID(payload.sub);
                 next();
             });
             return;
