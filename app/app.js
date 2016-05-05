@@ -1,24 +1,26 @@
 var express = require('express');
 var path = require('path');
-var morgan = require('morgan');
 var logger = require('./utils/logger');
 var bodyParser = require('body-parser');
 var mongoose = require("mongoose");
 var config = require("./config");
-var auth = require("./middleware/auth")
+var middle = require("./middleware/middle");
+var init_database = require("./models/init_data");
 
 //setup express
 var app = express();
-app.use(morgan('combined', {"stream": logger.stream}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
+
 //open database
 mongoose.connection.on('error', function (err) {
-    console.log("database connection error %s", err.message);
+    logger.info("database connection error %s", err.message);
 });
 mongoose.connect(config.database);
 
+//set required initial database data if not already there
+init_database();
 
 // used by openshift cloud service
 app.get("/health", function(req, res){
@@ -28,8 +30,7 @@ app.get("/health", function(req, res){
 
 //--- routes ---//
 app.use("/token",require("./routes/tokens"));
-
-
+app.use("/balloons",require("./routes/balloons"));
 
 
 // catch 404 and forward to error handler
@@ -41,7 +42,7 @@ app.use(function(req, res, next) {
 
 // error handlers
 app.use(function(err, req, res, next) {
-    res.json({result:{error:err.message}});
+    res.json({error:err.message});
 });
 
 
