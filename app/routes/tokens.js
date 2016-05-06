@@ -37,45 +37,40 @@ router.post("/google", function (req, res, next) {
         //get the subject from the token
         var id = login.getPayload().sub;
         //try to search in our database for the token
-        User.findOne({google_id: id}, function (err, user) {
-            //check if there is error while checking database
-            if(err)
-            {
+        User.findOne({google_id: id})
+            .then(function(user){
+                //check if user exist
+                if(user)
+                {
+                    //user found create jwt and return
+                    res.json({result:{api_token: creatJWT(user.id)},created:false});
+                }
+                else
+                {
+                    //user not found so create a new user
+                    var new_user = new User({
+                        name: name,
+                        google_id: id
+                    });
+
+                    //save the user to database
+                    new_user.save()
+                        .then(function(user) {
+                            res.json({result:{api_token: creatJWT(user.id), created:true}});
+                        })
+                        .catch(function(err){
+                            console.log("Error saving user: " + err.message);
+                            next(new Error("Internal server error."));
+                        });
+
+                }
+            })
+            .catch(function(err){
                 console.log(err.message);
-                return next(new Error("Internal server error."));
-            }
-
-            //check if user exist
-            if(user)
-            {
-                //user found create jwt and return
-                res.json({result:{api_token: creatJWT(user.id)},created:false});
-            }
-            else
-            {
-                //user not found so create a new user
-                var new_user = new User({
-                    name: name,
-                    google_id: id
-                });
-
-                //save the user to database
-                new_user.save(function (err, user) {
-                    //was there error while saving?
-                    if(err)
-                    {
-                        console.log("Error saving user: " + err.message);
-                        return next(new Error("Internal server error."));
-                    }
-
-                    //successfuly saved user now return the jwt token
-                    res.json({result:{api_token: creatJWT(user.id), created:true}});
-                })
-            }
-        });
+                next(new Error("Internal server error."));
+            });
 
     });
-
 
 });
 

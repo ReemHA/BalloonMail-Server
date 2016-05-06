@@ -36,7 +36,9 @@ groupSchema.statics.addUser = function () {
     return promise
         .then(function(counter)
         {
-            return Promise.from(counter.count/config.group_limit);
+            var new_id = Math.ceil(counter.count/config.group_limit);
+            //if first one then ensure that
+            return Promise.from();
         });
 
 };

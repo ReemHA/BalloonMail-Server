@@ -14,15 +14,6 @@ module.exports = function()
         },
         {upsert: true},
         function(err) {
-            if(!err)
-            {
-                Group.update(
-                    {group_id: 1},
-                    {$setOnInsert: {group_id: 1}},
-                    {upsert: true},
-                    function() {}
-                );
-            }
         }
     );
 
