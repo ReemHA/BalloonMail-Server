@@ -1,3 +1,4 @@
 var auth = require("./auth");
 var pipe = require("./pipe");
-module.exports = [pipe, auth];
+var db = require("./database");
+module.exports = [pipe, auth, db];

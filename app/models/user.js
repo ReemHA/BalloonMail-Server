@@ -1,34 +1,34 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+var misc = require("../utils/misc");
+var Promise = require("promise");
+var table_name = "user";
 
-var Group = require("./group");
+var User = {
+    findByGoogleId: function (db, google_id) {
+        return db.query("SELECT `user_id` FROM ?? WHERE ?",[table_name, {google_id: google_id}])
+            .then(function (rows) {
+                if(rows.length == 0)
+                    return null;
+                else
+                    return rows[0];
+            });
+    },
+    
+    createWithGoogleId: function (db, name, google_id) {
+        return db.query("INSERT INTO ?? SET ?",
+            [table_name, {name: name, google_id: google_id, created_at: misc.getDateUTC()}])
+            .then(function (results) {
+                if(results.affectedRows == 1)
+                    return {user_id: results.insertId, name: name};
+                else
+                {
+                    var error = new Error("Unknown error while inserting: affectedRows="+results.affectedRows);
+                    error.status = -1;
+                    return Promise.reject(error);
+                }
+            })
+    }
 
-
-var userSchema = new Schema({
-    name: {type: String, required: true},
-    google_id: {type:String, unique:true },
-    group_id: {type:String, index: true}
-}, {
-        timestamp:true
-});
-
-//methods
-userSchema.pre("save", function (next) {
-    var doc = this;
-    Group.addUser()
-        .then(function(group_id)
-        {
-            doc.group_id = group_id;
-        })
-        .catch(function (err) {
-           next(err);
-        });
-
-});
-
-
-var User = mongoose.model('User', userSchema);
-
+};
 
 
 module.exports = User;

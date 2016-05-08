@@ -1,6 +1,12 @@
 module.exports = {
     
-    database: (process.env.MONGODB_URL || "mongodb://localhost/") + "balloon",
+    database: {
+        host: "localhost",
+        port: "3306",
+        user: "root",
+        pass: "root",
+        name: "balloon"
+    },
     group_limit: 256,
 
     //don't touch

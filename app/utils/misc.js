@@ -1,7 +1,7 @@
-var mongoose = require("mongoose");
+var moment = require("moment");
 
 var ex = module.exports;
 
-ex.getID = function (string_id) {
-    return mongoose.Types.ObjectId(string_id);
+ex.getDateUTC = function () {
+    return moment.utc().format("YYYY-MM-DD HH:mm:ss");
 };

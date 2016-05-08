@@ -2,7 +2,6 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var Counter = require("./counter");
 var config = require("../config");
-var Promise = require("promise");
 
 
 var groups_counter = "groups";
