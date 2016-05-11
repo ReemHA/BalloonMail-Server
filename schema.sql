@@ -40,6 +40,11 @@ CREATE TABLE IF NOT EXISTS `balloon`.`balloons` (
   `reach` FLOAT UNSIGNED NOT NULL DEFAULT 0,
   `sent_at` DATETIME(0) NOT NULL,
   `rank` INT UNSIGNED NOT NULL DEFAULT 0,
+  `sentiment` FLOAT NOT NULL DEFAULT 0,
+  `lng` DECIMAL(9,6) NULL DEFAULT NULL,
+  `lat` DECIMAL(8,8) NULL DEFAULT NULL,
+  `in_flight` INT UNSIGNED NOT NULL,
+  INDEX `sent_date` (`user_id` ASC, `sent_at` ASC),
   PRIMARY KEY (`balloon_id`),
   INDEX `balloon_user_idx` (`user_id` ASC),
   CONSTRAINT `balloon_user`
@@ -62,10 +67,15 @@ CREATE TABLE IF NOT EXISTS `balloon`.`paths` (
   `to_user` INT UNSIGNED NOT NULL,
   `to_lat` DECIMAL(8,6) NULL,
   `to_lng` DECIMAL(9,6) NULL,
+  `sent_at` DATETIME(0) NOT NULL,
+  `to_refilled` BOOL NOT NULL DEFAULT false,
+  `to_liked` BOOL NOT NULL DEFAULT false,
+  `to_creeped` BOOL NOT NULL DEFAULT false,
   PRIMARY KEY (`path_id`),
   INDEX `path_balloons_idx` (`balloon_id` ASC),
   INDEX `sending_user_idx` (`from_user` ASC),
   INDEX `receiving_user_idx` (`to_user` ASC),
+  INDEX `receive_date` (`to_user` ASC, `sent_at` ASC),
   UNIQUE INDEX `receive_once` (`balloon_id` ASC, `to_user` ASC),
   CONSTRAINT `liked_balloons`
     FOREIGN KEY (`balloon_id`)

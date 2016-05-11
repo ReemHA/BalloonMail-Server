@@ -1,9 +1,8 @@
 var express = require('express');
 var logger = require('./utils/logger');
 var bodyParser = require('body-parser');
-var config = require("./config");
-var db = require("./models/connection");
 var init_database = require("./models/init_data");
+var misc = require("./utils/misc");
 
 //setup express
 var app = express();
@@ -19,8 +18,8 @@ init_database()
         database_up = true;
     })
     .catch(function (error) {
-        logger.error("Couldn't create or connect to database");
-        logger.error(error.message);
+        misc.logError(new Error("Couldn't create or connect to database"));
+        misc.logError(error);
     });
 
 
@@ -44,19 +43,27 @@ app.use(function (req,res,next) {
 
 //--- routes ---//
 app.use("/token",require("./routes/tokens"));
-// app.use("/balloons",require("./routes/balloons"));
+app.use("/balloons",require("./routes/balloons"));
 
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-    var err = new Error('Not Found');
+    var err = misc.makeError('Not Found');
     err.status = 404;
     next(err);
 });
 
 // error handlers
 app.use(function(err, req, res, next) {
-    res.json({error:err.message});
+    if(err.custom)
+    {
+        res.json({error:err.message});
+    }
+    else {
+        misc.logError(err, true);
+        res.json({error:"Internal server error."});
+    }
+
 });
 
 

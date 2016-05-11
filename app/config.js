@@ -8,6 +8,7 @@ module.exports = {
         name: "balloon"
     },
     group_limit: 256,
+    send_possible_counts: [2,4],
 
     //don't touch
     alchemy_key: "4eacae0efe2509a24654baaac00cd2b1120abdf3",

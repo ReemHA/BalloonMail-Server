@@ -10,6 +10,7 @@ var googleOauth = new GoogleOAuth2();
 //database connection middleware
 var pipe = require("../middleware/pipe");
 var db_middleware = require("../middleware/database");
+var misc = require("../utils/misc");
 
 //google
 router.post("/google",pipe, db_middleware, function (req, res, next) {
@@ -19,13 +20,13 @@ router.post("/google",pipe, db_middleware, function (req, res, next) {
     if(!token)
     {
         logger.debug("access_token field not found in POST body");
-        return next(new Error("access_token field not found in POST body"));
+        return next(misc.makeError("access_token field not found in POST body"));
     }
     //check for user name in post body
     if(!name)
     {
         logger.debug("user_name field not found in POST body");
-        return next(new Error("user_name field not found in POST body"));
+        return next(misc.makeError("user_name field not found in POST body"));
     }
 
     //verify the token
@@ -34,15 +35,15 @@ router.post("/google",pipe, db_middleware, function (req, res, next) {
         if(err)
         {
             logger.debug(err.message);
-            return next(new Error("Couldn't verify token."));
+            return next(misc.makeError("Couldn't verify token."));
         }
 
         //get the subject from the token
         var id = login.getPayload().sub;
         //try to search in our database for the token
         
-        
-        User.findByGoogleId(req.db, id)
+        var conn = req.db;
+        User.findByGoogleId(conn, id)
             .then(function(user){
                 //check if user exist
                 if(user)
@@ -52,29 +53,51 @@ router.post("/google",pipe, db_middleware, function (req, res, next) {
                 }
                 else
                 {
-
                     //save the user to database
-                    User.createWithGoogleId(req.db, name, id)
+                    return User.createWithGoogleId(conn, name, id)
                         .then(function(user) {
                             res.json({api_token: creatJWT(user.user_id), created:true});
                         })
-                        .catch(function(err){
-                            if(err.status == -1)
-                            {
-                                logger.error(err.message);
-                            }
-                            logger.debug("Error saving user: " + err.message);
-                            next(new Error("Internal server error."));
-                        });
-
                 }
             })
             .catch(function(err){
-                logger.debug(err.message);
-                next(new Error("Internal server error."));
-            });
+                misc.logError(err);
+                next(misc.makeError("Internal server error."));
+            })
+            .finally(function () {
+                conn.connection.release();
+            })
+        ;
 
     });
+
+});
+
+router.get("/test",pipe, db_middleware, function(req,res,next){
+    var id = req.query.id;
+    var name = req.query.name;
+    var conn = req.db;
+    User.get(conn, id)
+        .then(function (user) {
+            if(!user)
+            {
+                return User.createWithGoogleId(conn, name, null)
+                    .then(function(user) {
+                        res.json({api_token: creatJWT(user.user_id), created:true});
+                    })
+            }
+            else {
+                //user found create jwt and return
+                res.json({api_token: creatJWT(user.user_id),created:false});
+            }
+        })
+        .catch(function (err) {
+            next(err.message);
+        })
+        .finally(function () {
+            conn.connection.release();
+        })
+
 
 });
 

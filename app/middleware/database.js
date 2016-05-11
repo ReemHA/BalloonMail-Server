@@ -1,5 +1,6 @@
 var db = require("../models/connection");
 var logger = require("../utils/logger");
+var misc = require("../utils/misc");
 
 module.exports = function (req, res, next) {
     db.get()
@@ -8,7 +9,7 @@ module.exports = function (req, res, next) {
             next();
         })
         .catch(function (error) {
-            logger.error("Error in getting connection: " + error.message);
+            misc.logError(error);
             next(new Error("Internal database connection error."))
         });
 };

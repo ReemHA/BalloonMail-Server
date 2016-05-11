@@ -19,7 +19,7 @@ module.exports = function (req, res, next) {
                     return next(new Error("Unauthorized access."));
                 }
                 //success add user id to req object and call next
-                req.user_id = misc.getID(payload.sub);
+                req.user_id = payload.sub;
                 next();
             });
             return;

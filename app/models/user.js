@@ -1,5 +1,5 @@
 var misc = require("../utils/misc");
-var Promise = require("promise");
+var Promise = require("bluebird");
 var table_name = "user";
 
 var User = {
@@ -17,16 +17,37 @@ var User = {
         return db.query("INSERT INTO ?? SET ?",
             [table_name, {name: name, google_id: google_id, created_at: misc.getDateUTC()}])
             .then(function (results) {
-                if(results.affectedRows == 1)
-                    return {user_id: results.insertId, name: name};
-                else
-                {
-                    var error = new Error("Unknown error while inserting: affectedRows="+results.affectedRows);
-                    error.status = -1;
-                    return Promise.reject(error);
-                }
+                return {user_id: results.insertId, name: name};
             })
+    },
+
+    get: function (db, id) {
+        return db.query("SELECT `user_id`,`lng`,`lat` FROM ?? where `user_id`=?",[table_name, id])
+            .then(function (rows) {
+                if(rows.length == 0)
+                    return null;
+                return {user_id: rows[0].user_id, lng: rows[0].lng, lat: rows[0].lat};
+
+            })
+    },
+
+    getPositionObjectFromUsers : function(users){
+        var positions = {};
+        for(var i = 0; i < rows.length;i++)
+        {
+            var usr = users[i];
+            positions[usr.user_id] = {lng: usr.lng, lat:usr.lat};
+        }
+        return positions;
+    },
+
+    getRandom: function (db, number, except) {
+        return db.query("SELECT `user_id`, `lng`, `lat` FROM ?? WHERE `user_id` != ? ORDER BY rand() LIMIT ?",
+            [table_name, except, number]);
+
     }
+    
+
 
 };
 

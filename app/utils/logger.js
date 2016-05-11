@@ -1,5 +1,5 @@
 var winston = require('winston');
-winston.emitErrs = true;
+winston.emitErrs = false;
 
 var log_location = process.env.OPENSHIFT_LOG_DIR || "./logs/";
 var logger = new winston.Logger({
@@ -10,13 +10,31 @@ var logger = new winston.Logger({
             filename: log_location + 'all-logs.log',
             maxsize: 5242880, //5MB
             maxFiles: 5,
-            colorize: false
+            colorize: false,
+            handleExceptions: true,
+            humanReadableUnhandledException: true
         })
     ],
-    exitOnError: false
+    exitOnError: false,
+    emitErrs: false
 });
-winston.level = 'debug';
-module.exports = process.env.OPENSHIFT_LOG_DIR ? logger:winston;
+logger.level = "warn";
+
+var localLogger = new winston.Logger({
+    transports: [
+        new winston.transports.Console({
+            level: 'debug',
+            json:false,
+            colorize: true,
+            handleExceptions: true,
+            humanReadableUnhandledException: true
+        })
+    ],
+    exitOnError: false,
+    emitErrs: false
+});
+localLogger.level = "debug";
+module.exports = process.env.OPENSHIFT_LOG_DIR ? logger:localLogger;
 module.exports.stream = {
     write: function(message, encoding){
         module.exports.info(message);
