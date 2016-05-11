@@ -7,7 +7,7 @@ var middle = require("../middleware/middle");
 var logger = require("../utils/logger");
 var Promise = require("bluebird");
 
-var Hash = require("hashtable");
+//var Hash = require("hashtable");
 // var balloons_queue = new Hash();
 var misc = require("../utils/misc");
 var watson = require('watson-developer-cloud');
