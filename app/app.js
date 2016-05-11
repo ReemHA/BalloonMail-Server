@@ -18,8 +18,8 @@ init_database()
         database_up = true;
     })
     .catch(function (error) {
-        misc.logError(new Error("Couldn't create or connect to database"));
-        misc.logError(error);
+        misc.logError("Couldn't create or connect to database");
+        misc.logError(error,true);
     });
 
 
