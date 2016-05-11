@@ -76,7 +76,7 @@ var Balloon = {
     getLiked: function (db, user_id, last_date, limit ) {
         return db.query(
             "Select balloons.balloon_id as balloon_id, balloons.text as text, balloons.sentiment as sentiment,\n" +
-            "likes.liked_at as liked_at, paths.to_refilled as refilled \n"+
+            "likes.liked_at as liked_at, paths.to_refilled as refilled, paths.to_creeped as creeped\n"+
             "FROM ?? \n"+
             "INNER JOIN ?? \n"+
                 "ON balloons.balloon_id = likes.balloon_id \n"+
@@ -89,10 +89,10 @@ var Balloon = {
         var date = misc.getDateUTC();
         return db.beginTransaction()
             .then(function () {
-                return db.query("UPDATE ?? SET ? WHERE ", [
+                return db.query("UPDATE ?? SET ? WHERE `balloon_id`=? AND `to_user`=?", [
                     path_table,
                     {to_liked: true},
-                    {balloon_id: balloon_id, to_user: user_id}
+                    balloon_id, user_id
                 ]);
             })
             .then(function(rows){
@@ -115,8 +115,8 @@ var Balloon = {
         var date = misc.getDateUTC();
         return db.beginTransaction()
             .then(function () {
-                return db.query("UPDATE ?? SET ? WHERE ?",
-                    [path_table, {to_creeped: true}, {balloon_id: balloon_id, to_user: user_id}]);
+                return db.query("UPDATE ?? SET ? WHERE `balloon_id`=? AND `to_user`=?",
+                    [path_table, {to_creeped: true},  balloon_id,  user_id]);
             })
             .then(function(rows){
                 if(rows.affectedRows < 1)

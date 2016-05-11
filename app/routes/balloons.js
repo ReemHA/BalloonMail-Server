@@ -189,6 +189,9 @@ router.post("/like",...middle, function (req, res, next) {
 
     var conn = req.db;
     Balloon.like(conn,req.user_id, balloon_id)
+        .then(function(){
+            res.json({});
+        })
         .catch(function (error) {
             misc.logError(error);
             next(error);
@@ -196,6 +199,8 @@ router.post("/like",...middle, function (req, res, next) {
         .finally(function () {
             conn.connection.release();
         });
+
+
 });
 
 router.post("/creep",...middle, function (req, res, next) {
@@ -210,6 +215,7 @@ router.post("/creep",...middle, function (req, res, next) {
     Balloon.creep(conn,req.user_id, balloon_id)
         .then(function () {
             notifyCreeped(req.user_id, balloon_id);
+            res.json({});
         })
         .catch(function (error) {
             misc.logError(error);
