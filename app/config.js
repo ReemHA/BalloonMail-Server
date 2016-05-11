@@ -1,8 +1,8 @@
 module.exports = {
     
     database: {
-        host: "localhost",
-        port: "3306",
+        host: process.env.DB_HOST || "localhost",
+        port: process.env.DB_PORT || "3306",
         user: "root",
         pass: "root",
         name: "balloon"

@@ -18,7 +18,8 @@ var Balloon = {
                 in_flight: in_flight
             }])
             .then(function (rows) {
-                return {balloon_id: rows.insertId, user_id: user_id, text:text, sent_at: sent_at, in_flight: in_flight}
+                return {balloon_id: rows.insertId, user_id: sender.user_id, text:text, sent_at: sent_at,
+                    in_flight: in_flight}
             });
     },
 

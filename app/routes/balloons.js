@@ -53,7 +53,7 @@ router.post("/create",...middle, function (req, res, next) {
                         .then(function (balloon) {
                             data.balloon = balloon;
                             //are there users to send to?
-                            if(data.rec > 0)
+                            if(data.rec.length > 0)
                                 return Balloon.send(conn,data.balloon, data.sender, data.rec);
                             return null;
                         })
