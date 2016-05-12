@@ -1,6 +1,7 @@
 
 var db = require("promise-mysql");
 var config = require("../config");
+var connected = false;
 module.exports = function()
 {
     var connection = null;
@@ -148,6 +149,9 @@ module.exports = function()
 
             );
         })
+        .then(function () {
+            connected = true;
+        })
         .finally(function () {
             if(connection)
             {
@@ -157,3 +161,7 @@ module.exports = function()
     ;
 
 };
+
+module.exports.database_up = function () {
+    return connected;
+}

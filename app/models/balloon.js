@@ -138,6 +138,33 @@ var Balloon = {
                 db.rollback().catch(function (err) {misc.logError(err);});
                 throw error;
             })
+    },
+    isCreepedBy: function (db, balloon_id, user_id) {
+        return db.query("Select from ?? WHERE `balloon_id` = ? AND `to_user`=?",
+            [path_table, balloon_id, user_id])
+            .then(function (result) {
+                if(result.affectedRows == 0)
+                    return null;
+                return Boolean(result.to_creeped);
+            });
+    },
+    isRefilledBy: function (db, balloon_id, user_id) {
+        return db.query("Select from ?? WHERE `balloon_id` = ? AND `to_user`=?",
+            [path_table, balloon_id, user_id])
+            .then(function (result) {
+                if(result.affectedRows == 0)
+                    return null;
+                return Boolean(result.to_refilled);
+            });
+    },
+    get: function (db, balloon_id) {
+        return db.query("SELECT `user_id` from ?? WHERE ?",[balloon_table,{balloon_id:balloon_id}])
+            .then(function (result) {
+                if(results.affectedRows == 0)
+                    return Promise.reject(misc.makeError("Balloon not found"));
+
+                return results.user_id;
+            });
     }
 
 

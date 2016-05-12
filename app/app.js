@@ -57,5 +57,4 @@ app.use(function(err, req, res, next) {
 
 
 
-module.exports = app;
-module.exports.database_up = database_up;
+module.exports =app;

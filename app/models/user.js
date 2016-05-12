@@ -1,6 +1,7 @@
 var misc = require("../utils/misc");
 var Promise = require("bluebird");
 var table_name = "user";
+var paths_table="paths";
 
 var User = {
     findByGoogleId: function (db, google_id) {
@@ -45,6 +46,14 @@ var User = {
         return db.query("SELECT `user_id`, `lng`, `lat` FROM ?? WHERE `user_id` != ? ORDER BY rand() LIMIT ?",
             [table_name, except, number]);
 
+    },
+    
+    getRandomWithNoBalloon: function (db, number, balloon_id, except) {
+        return db.query("SELECT `user_id` from ?? " +
+            "WHERE `user_id` NOT IN (" +
+            "SELECT `to_user from ?? WHERE ? )" +
+            "AND `user_id` != ? ORDER BY rand() LIMIT ?",
+            [table_name,paths_table,{balloon_id:balloon_id},except, number ]);
     }
     
 

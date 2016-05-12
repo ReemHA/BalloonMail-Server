@@ -9,6 +9,7 @@ var Promise = require("bluebird");
 
 //var Hash = require("hashtable");
 // var balloons_queue = new Hash();
+var balloons_queue = {};
 var misc = require("../utils/misc");
 var watson = require('watson-developer-cloud');
 var alchemy_language = watson.alchemy_language({
@@ -212,10 +213,19 @@ router.post("/creep",...middle, function (req, res, next) {
     }
 
     var conn = req.db;
-    Balloon.creep(conn,req.user_id, balloon_id)
-        .then(function () {
-            notifyCreeped(req.user_id, balloon_id);
-            res.json({});
+    Balloon.isCreepedBy(conn, balloon_id, req.user_id)
+        .then(function (is_creeped) {
+            if(is_creeped)
+                return Promise.reject(misc.makeError("User already creeped this balloon"));
+            if (is_creeped == null)
+            {
+                return Promise.reject(misc.makeError("User dont have this balloon."));
+            }
+            return Balloon.creep(conn,req.user_id, balloon_id)
+                .then(function () {
+                    notifyCreeped(req.user_id, balloon_id);
+                    res.json({});
+                })
         })
         .catch(function (error) {
             misc.logError(error);
@@ -224,7 +234,53 @@ router.post("/creep",...middle, function (req, res, next) {
         .finally(function () {
             conn.connection.release();
         });
+
 });
+
+router.post("/refill",function (req, res, next) {
+    var balloon_id = req.body.balloon_id;
+    if(!balloon_id)
+    {
+        next(misc.makeError("balloon_id field not found in request."));
+        return;
+    }
+    var conn = req.db;
+    //get send count randomly
+    var send_count = config.send_possible_counts[Math.floor(Math.random() * config.send_possible_counts.length)];
+    var data = {};
+    Balloon.isRefilledBy(conn, balloon_id, req.user_id)
+        .then(function (is_refilled) {
+            if(is_refilled)
+                return Promise.reject(misc.makeError("User already refilled this balloon"));
+            if (is_refilled == null)
+            {
+                return Promise.reject(misc.makeError("User dont have this balloon."));
+            }
+            return Balloon.get(db, balloon_id)
+        })
+        .then(function (source_id){
+            data.source_id = source_id;
+            return conn.beginTransaction()
+        })
+        .then(function () {
+            return User.getRandomWithNoBalloon(db,send_count,balloon_id, data.source_id)
+                .then(function (users) {
+
+                })
+                .catch(function (error) {
+                    conn.rollback().catch(function (err) {misc.logError(err);});
+                    throw error;
+                })
+        })
+        .catch(function (error) {
+            misc.logError(error);
+            next(error);
+        })
+        .finally(function () {
+            conn.connection.release();
+        });
+
+} );
 var notifyBalloonSent = function (balloon, sender, receivers, sent_at) {
     if(receivers.length == 0)
         return;
