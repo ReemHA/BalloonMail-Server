@@ -16,7 +16,7 @@ module.exports = function (req, res, next) {
                 if(err)
                 {
                     logger.debug("Authorizing: " + err.message);
-                    return next(new Error("Unauthorized access."));
+                    return next(misc.makeError("Unauthorized access"));
                 }
                 //success add user id to req object and call next
                 req.user_id = payload.sub;
