@@ -29,17 +29,6 @@ app.get("/health", function(req, res){
     res.end();
 });
 
-// reject requests till database is setup
-app.use(function (req,res,next) {
-    if(!database_up)
-    {
-        next(new Error("Database is not up."));
-    }
-    else
-    {
-        next();
-    }
-});
 
 //--- routes ---//
 app.use("/token",require("./routes/tokens"));
@@ -69,3 +58,4 @@ app.use(function(err, req, res, next) {
 
 
 module.exports = app;
+module.exports.database_up = database_up;
