@@ -28,5 +28,5 @@ module.exports = function (req, res, next) {
     }
 
     logger.debug("Couldn't find authorization Bearer in head.");
-    next(new Error("Couldn't find api token in request."))
+    next(misc.makeError("Couldn't find api token in request."))
 };

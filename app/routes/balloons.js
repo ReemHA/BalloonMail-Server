@@ -7,6 +7,8 @@ var middle = require("../middleware/middle");
 var logger = require("../utils/logger");
 var Promise = require("bluebird");
 
+var request = require('request');
+
 //var Hash = require("hashtable");
 // var balloons_queue = new Hash();
 var balloons_queue = {};
@@ -285,7 +287,35 @@ var notifyBalloonSent = function (balloon, sender, receivers, sent_at) {
     if(receivers.length == 0)
         return;
 
+    request(
+        {
+            "uri": "https://gcm-http.googleapis.com/gcm/send",
+            "method": "POST",
+            "header": {
+                'Content-Type': 'application/json',
+                'Authorization': 'key='+config.gcm_token
+            },
+            "body": JSON.stringify({
+                "registration_ids": receivers,
+                "notification": {
+                    "title": "Balloon Received",
+                    "body": "from Tarboosh",
+                    "icon": "",
+                    "sound": "default"
+                },
+                "data": {
 
+                }
+            })
+        }
+        , function (error, response, body) {
+            if(error) {
+
+            }
+            else {
+
+            }
+    });
 };
 var notifyCreeped = function(user_id, balloon_id) {
 
