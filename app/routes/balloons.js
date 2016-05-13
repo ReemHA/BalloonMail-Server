@@ -216,7 +216,7 @@ router.post("/like",...middle, function (req, res, next) {
 
 });
 
-router.get("/paths", function (req, res, next) {
+router.get("/paths",...middle, function (req, res, next) {
     var balloon_id = req.query.balloon_id;
     if(!balloon_id)
     {
