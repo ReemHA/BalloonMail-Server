@@ -182,7 +182,7 @@ var Balloon = {
     },
     getPaths:function (db, balloon_id) {
         return db.query("Select `from_user`, `from_lat`, `from_lng`, `to_user`, `to_lat`, `to_lng`" +
-            "FROM  ?? WHERE ?",[path_table, {ballon_id:balloon_id}]);
+            "FROM  ?? WHERE ?",[path_table, {balloon_id:balloon_id}]);
     },
 
     isRefilledBy: function (db, balloon_id, user_id) {
