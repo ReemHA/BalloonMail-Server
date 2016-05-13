@@ -87,7 +87,7 @@ var Balloon = {
         return db.query(
             "Select balloons.balloon_id as balloon_id, balloons.text as text, balloons.sentiment as sentiment,\n" +
             " balloons.lng as lng, balloons.lat as lat,likes.liked_at as liked_at, paths.to_refilled as refilled," +
-            " paths.to_creeped as creeped\n"+
+            " paths.to_creeped as creeped, paths.sent_at\n"+
             "FROM ?? \n"+
             "INNER JOIN ?? \n"+
                 "ON balloons.balloon_id = likes.balloon_id \n"+
