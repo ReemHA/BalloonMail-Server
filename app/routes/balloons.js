@@ -190,7 +190,7 @@ router.post("/like",...middle, function (req, res, next) {
     }
 
     var conn = req.db;
-    db.query("SELECT * FROM `paths` WHERE `to_user` = ? AND `balloon_id` = ?",[req.user_id, balloon_id])
+    conn.query("SELECT * FROM `paths` WHERE `to_user` = ? AND `balloon_id` = ?",[req.user_id, balloon_id])
         .then(function (results) {
             if(results.length == 0)
                 return Promise.reject(misc.makeError("User dont have this balloon."));
