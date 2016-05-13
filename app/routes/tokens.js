@@ -33,7 +33,7 @@ router.post("/google",pipe, db_middleware, function (req, res, next) {
     }
 
     //check for lng & lat in post body
-    if(!lng || !lat)
+    if(lng == null || lat == null)
     {
         logger.debug("lng or lat field not found in POST body");
         return next(misc.makeError("lng or lat field not found in POST body"));
