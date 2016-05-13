@@ -16,7 +16,7 @@ var misc = require("../utils/misc");
 router.post("/google",pipe, db_middleware, function (req, res, next) {
     var token = req.body.access_token;
     var name = req.body.user_name;
-    var lng = NUMBERreq.body.lng;
+    var lng = req.body.lng;
     var lat = req.body.lat;
     var gcm_id = req.body.gcm_id;
     //check for token in post body
