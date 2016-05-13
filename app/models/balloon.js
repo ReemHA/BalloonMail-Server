@@ -51,12 +51,22 @@ var Balloon = {
                     return sent_at;
             });
     },
-    update: function (db, balloon, data) {
+    update: function (db, balloon_id, data) {
         return db.query("UPDATE ?? SET ? WHERE `balloon_id`=?",
-            [balloon_table, data, balloon.balloon_id]);
+            [balloon_table, data, balloon_id]);
 
     },
+    increment_refilled: function (db, balloon_id) {
+        return db.query("UPDATE ?? SET `refills` = `refills`+1 WHERE `balloon_id`=?",
+            [balloon_table, balloon_id])
+            .then(function (results) {
+                if(results.affectedRows < 1)
+                    return Promise.reject(misc.makeError("Balloon not found"));
 
+                return true;
+            });
+
+    },
     getSent: function (db, user_id, last_date, limit ) {
         return db.query("SELECT * FROM ?? WHERE `user_id`=? AND `sent_at` < ?  LIMIT ?",
             [balloon_table, user_id, last_date, limit]);
@@ -65,7 +75,7 @@ var Balloon = {
     getReceived: function(db, user_id, last_date, limit){
         return db.query(
             "Select balloons.balloon_id as balloon_id, balloons.text as text, balloons.sentiment as sentiment" +
-            ", paths.sent_at as sent_at, paths.to_refilled as refilled, \n"+
+            ", balloons.lng as lng, balloons.lat as lat, paths.sent_at as sent_at, paths.to_refilled as refilled, \n"+
                 "paths.to_liked as liked, paths.to_creeped as creeped\n"+
             "FROM ?? \n"+
             "INNER JOIN ?? \n"+
@@ -76,7 +86,8 @@ var Balloon = {
     getLiked: function (db, user_id, last_date, limit ) {
         return db.query(
             "Select balloons.balloon_id as balloon_id, balloons.text as text, balloons.sentiment as sentiment,\n" +
-            "likes.liked_at as liked_at, paths.to_refilled as refilled, paths.to_creeped as creeped\n"+
+            " balloons.lng as lng, balloons.lat as lat,likes.liked_at as liked_at, paths.to_refilled as refilled," +
+            " paths.to_creeped as creeped\n"+
             "FROM ?? \n"+
             "INNER JOIN ?? \n"+
                 "ON balloons.balloon_id = likes.balloon_id \n"+
@@ -111,25 +122,24 @@ var Balloon = {
                 throw error;
             })
     },
-    creep: function (db, user_id, balloon_id) {
+    
+    unlike: function (db, user_id, balloon_id) {
         var date = misc.getDateUTC();
         return db.beginTransaction()
             .then(function () {
-                return db.query("UPDATE ?? SET ? WHERE `balloon_id`=? AND `to_user`=?",
-                    [path_table, {to_creeped: true},  balloon_id,  user_id]);
+                return db.query("UPDATE ?? SET ? WHERE `balloon_id`=? AND `to_user`=?", [
+                    path_table,
+                    {to_liked: false},
+                    balloon_id, user_id
+                ]);
             })
             .then(function(rows){
                 if(rows.affectedRows < 1)
-                    return Promise.reject(misc.makeError("User " + user_id + " creeped balloon "
+                    return Promise.reject(misc.makeError("User " + user_id + " unlikes balloon "
                         + balloon_id + " though it was not received."));
-                //lock the row for update
-                return db.query("SELECT * FROM ?? WHERE ? LOCK IN SHARE MODE"
-                    , [balloon_table, {balloon_id: balloon_id}]);
-            })
-            .then(function (result) {
-                //update the row
-                return db.query("UPDATE ?? SET creeps = creeps+1 WHERE ?"
-                    ,[balloon_table, {balloon_id: balloon_id}])
+
+                return db.query("Delete FROM ?? WHERE `balloon_id`=? AND `user_id` = ?",
+                    [like_table, balloon_id, user_id, date]);
             })
             .then(function (rows) {
                 return db.commit();
@@ -139,31 +149,68 @@ var Balloon = {
                 throw error;
             })
     },
-    isCreepedBy: function (db, balloon_id, user_id) {
-        return db.query("Select from ?? WHERE `balloon_id` = ? AND `to_user`=?",
+    creep: function (db, user_id, balloon_id) {
+        var date = misc.getDateUTC();
+        var balloon = null;
+        return db.beginTransaction()
+            .then(function () {
+                return db.query("UPDATE ?? SET ? WHERE `balloon_id`=? AND `to_user`=? AND `to_creeped`=?",
+                    [path_table, {to_creeped: true},  balloon_id,  user_id,false]);
+            })
+            .then(function(rows){
+                if(rows.affectedRows < 1)
+                    return Promise.reject(misc.makeError("Cant creep again."));
+                //lock the row for update
+                return db.query("SELECT * FROM ?? WHERE ? LOCK IN SHARE MODE"
+                    , [balloon_table, {balloon_id: balloon_id}]);
+            })
+            .then(function (result) {
+                balloon = result;
+                //update the row
+                return db.query("UPDATE ?? SET creeps = creeps+1 WHERE ?"
+                    ,[balloon_table, {balloon_id: balloon_id}])
+            })
+            .then(function (rows) {
+                return db.commit().then(function () {
+                    return balloon;
+                });
+            })
+            .catch(function (error) {
+                db.rollback().catch(function (err) {misc.logError(err);});
+                throw error;
+            })
+    },
+    getPaths:function (db, balloon_id) {
+        return db.query("Select `from_user`, `from_lat`, `from_lng`, `to_user`, `to_lat`, `to_lng`" +
+            "FROM  ?? WHERE ?",[path_table, {ballon_id:balloon_id}]);
+    },
+
+    isRefilledBy: function (db, balloon_id, user_id) {
+        return db.query("Select * from ?? WHERE `balloon_id` = ? AND `to_user`=?",
             [path_table, balloon_id, user_id])
             .then(function (result) {
-                if(result.affectedRows == 0)
+                if(result.length == 0)
                     return null;
-                return Boolean(result.to_creeped);
+                return Boolean(result[0].to_refilled);
             });
     },
-    isRefilledBy: function (db, balloon_id, user_id) {
-        return db.query("Select from ?? WHERE `balloon_id` = ? AND `to_user`=?",
-            [path_table, balloon_id, user_id])
+    set_refilled: function(db, balloon_id, user_id)
+    {
+        return db.query("UPDATE ?? SET ? WHERE `balloon_id` = ? AND `to_user` = ?",
+            [path_table,{to_refilled:true}, balloon_id, user_id])
             .then(function (result) {
                 if(result.affectedRows == 0)
-                    return null;
-                return Boolean(result.to_refilled);
-            });
+                    return Promise.reject(misc.makeError("User dont have this balloon."));
+                return true;
+            })
     },
     get: function (db, balloon_id) {
-        return db.query("SELECT `user_id` from ?? WHERE ?",[balloon_table,{balloon_id:balloon_id}])
-            .then(function (result) {
+        return db.query("SELECT * from ?? WHERE ?",[balloon_table,{balloon_id:balloon_id}])
+            .then(function (results) {
                 if(results.affectedRows == 0)
                     return Promise.reject(misc.makeError("Balloon not found"));
 
-                return results.user_id;
+                return results[0];
             });
     }
 

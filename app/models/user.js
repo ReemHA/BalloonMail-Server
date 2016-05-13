@@ -14,16 +14,17 @@ var User = {
             });
     },
     
-    createWithGoogleId: function (db, name, google_id) {
+    createWithGoogleId: function (db, name, google_id, lng, lat, gcm_id) {
         return db.query("INSERT INTO ?? SET ?",
-            [table_name, {name: name, google_id: google_id, created_at: misc.getDateUTC()}])
+            [table_name, {name: name, google_id: google_id, lng:lng, lat:lat,
+                gcm_id:gcm_id, created_at: misc.getDateUTC()}])
             .then(function (results) {
                 return {user_id: results.insertId, name: name};
             })
     },
 
     get: function (db, id) {
-        return db.query("SELECT `user_id`,`lng`,`lat` FROM ?? where `user_id`=?",[table_name, id])
+        return db.query("SELECT `user_id`,`lng`,`lat`,`gcm_id` FROM ?? where `user_id`=?",[table_name, id])
             .then(function (rows) {
                 if(rows.length == 0)
                     return null;
@@ -43,15 +44,15 @@ var User = {
     },
 
     getRandom: function (db, number, except) {
-        return db.query("SELECT `user_id`, `lng`, `lat` FROM ?? WHERE `user_id` != ? ORDER BY rand() LIMIT ?",
+        return db.query("SELECT `user_id`, `lng`, `lat`,`gcm_id` FROM ?? WHERE `user_id` != ? ORDER BY rand() LIMIT ?",
             [table_name, except, number]);
 
     },
     
     getRandomWithNoBalloon: function (db, number, balloon_id, except) {
-        return db.query("SELECT `user_id` from ?? " +
+        return db.query("SELECT `user_id`, `lng`,`lat`,`gcm_id` from ?? " +
             "WHERE `user_id` NOT IN (" +
-            "SELECT `to_user from ?? WHERE ? )" +
+            "SELECT `to_user` from ?? WHERE ?) " +
             "AND `user_id` != ? ORDER BY rand() LIMIT ?",
             [table_name,paths_table,{balloon_id:balloon_id},except, number ]);
     }

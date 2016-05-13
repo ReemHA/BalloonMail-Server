@@ -1,13 +1,12 @@
 var express = require('express');
 var router = express.Router();
+var request = require("request");
 var Balloon = require("../models/balloon");
 var User = require("../models/user");
 var config = require("../config");
 var middle = require("../middleware/middle");
 var logger = require("../utils/logger");
 var Promise = require("bluebird");
-
-var request = require('request');
 
 //var Hash = require("hashtable");
 // var balloons_queue = new Hash();
@@ -81,7 +80,7 @@ router.post("/create",...middle, function (req, res, next) {
                         .then(function (sentiment) {
                             data.sentiment = sentiment;
                             data.reach = calculateReach(data.sender, data.rec);
-                            return Balloon.update(conn, data.balloon, {
+                            return Balloon.update(conn, data.balloon.balloon_id, {
                                 sentiment: sentiment,
                                 reach: data.reach
                             });
@@ -103,7 +102,7 @@ router.post("/create",...middle, function (req, res, next) {
                                 in_flight: data.balloon.in_flight,
                                 sent_at: data.balloon.sent_at
                             });
-                            notifyBalloonSent(data.balloon,data.sender, data.rec, data.sent_at);
+                            notifyBalloonSent(data.balloon,data.sender, data.rec, data.sent_at,false);
 
                         })
                         .catch(function (error) {
@@ -148,7 +147,7 @@ router.get("/received", ...middle,function (req, res, next) {
     var limit = req.query.limit || Number.MAX_SAFE_INTEGER;
     limit = Number(limit);
     var conn = req.db;
-    Balloon.getSent(conn,req.user_id, last_date, limit)
+    Balloon.getReceived(conn,req.user_id, last_date, limit)
         .then(function (balloons) {
             res.json({balloons: balloons});
         })
@@ -191,7 +190,18 @@ router.post("/like",...middle, function (req, res, next) {
     }
 
     var conn = req.db;
-    Balloon.like(conn,req.user_id, balloon_id)
+    db.query("SELECT * FROM `paths` WHERE `to_user` = ? AND `balloon_id` = ?",[req.user_id, balloon_id])
+        .then(function (results) {
+            if(results.length == 0)
+                return Promise.reject(misc.makeError("User dont have this balloon."));
+            return results[0].to_liked;
+        })
+        .then(function (has_liked) {
+            if(!has_liked)
+                return Balloon.like(conn,req.user_id, balloon_id);
+            else
+                return Balloon.unlike(conn,req.user_id, balloon_id);
+        })
         .then(function(){
             res.json({});
         })
@@ -206,6 +216,29 @@ router.post("/like",...middle, function (req, res, next) {
 
 });
 
+router.get("/paths", function (req, res, next) {
+    var balloon_id = req.query.balloon_id;
+    if(!balloon_id)
+    {
+        next(misc.makeError("balloon_id field not found in request."));
+        return;
+    }
+
+    var source = req.user_id;
+    var conn = req.db;
+    Balloon.getPaths(conn, balloon_id)
+        .then(function (paths) {
+            res.json({source: source, paths:paths});
+        })
+        .catch(function (error) {
+            misc.logError(error);
+            next(error);
+        })
+        .finally(function () {
+            conn.connection.release();
+        });
+});
+
 router.post("/creep",...middle, function (req, res, next) {
     var balloon_id = req.body.balloon_id;
     if(!balloon_id)
@@ -215,18 +248,12 @@ router.post("/creep",...middle, function (req, res, next) {
     }
 
     var conn = req.db;
-    Balloon.isCreepedBy(conn, balloon_id, req.user_id)
-        .then(function (is_creeped) {
-            if(is_creeped)
-                return Promise.reject(misc.makeError("User already creeped this balloon"));
-            if (is_creeped == null)
-            {
-                return Promise.reject(misc.makeError("User dont have this balloon."));
-            }
-            return Balloon.creep(conn,req.user_id, balloon_id)
-                .then(function () {
-                    notifyCreeped(req.user_id, balloon_id);
-                    res.json({});
+    Balloon.creep(conn, req.user_id, balloon_id)
+        .then(function (balloon) {
+            res.json({});
+            User.get(db, balloon.user_id)
+                .then(function (user) {
+                    notifyCreeped(user,balloon_id, balloon.creeps+ 1);
                 })
         })
         .catch(function (error) {
@@ -239,18 +266,111 @@ router.post("/creep",...middle, function (req, res, next) {
 
 });
 
-router.post("/refill",function (req, res, next) {
+router.post("/refill",...middle,function (req, res, next) {
     var balloon_id = req.body.balloon_id;
     if(!balloon_id)
     {
         next(misc.makeError("balloon_id field not found in request."));
         return;
     }
-    var conn = req.db;
+
+    if(balloons_queue[balloon_id])
+    {
+        addRequestToQueue(balloon_id, req.user_id, req.db, res, next);
+    }
+    else
+    {
+        setBalloonInProgress(balloon_id);
+        refill_request(req.user_id, balloon_id, req.db, res, next);
+    }
+
+
+} );
+
+var notifyBalloonSent = function (balloon, sender, receivers, sent_at) {
+    // if(receivers.length == 0)
+    //     return;
+    //
+    // request(
+    //     {
+    //         "uri": "https://gcm-http.googleapis.com/gcm/send",
+    //         "method": "POST",
+    //         "header": {
+    //             'Content-Type': 'application/json',
+    //             'Authorization': 'key='+config.web_client_id
+    //         },
+    //         "body": JSON.stringify({
+    //             "registration_ids": receivers.map(function(obj){return obj.gcm_id;}),
+    //             "data": {
+    //                 "message": JSON.stringify({
+    //                     type:"received",
+    //                     lng: String(sender.lng),
+    //                     lat: String(sender.lat)
+    //                 })
+    //
+    //             }
+    //         })
+    //     }
+    //     , function (error, response, body) {
+    //     });
+};
+
+
+var notifyCreeped = function(user, balloon_id, new_creeps) {
+    // request(
+    //     {
+    //         "uri": "https://gcm-http.googleapis.com/gcm/send",
+    //         "method": "POST",
+    //         "header": {
+    //             'Content-Type': 'application/json',
+    //             'Authorization': 'key='+config.web_client_id
+    //         },
+    //         "body": JSON.stringify({
+    //             "to": user.gcm_id,
+    //             "data": {
+    //                 "message": JSON.stringify({
+    //                     type:"creeped",
+    //                     refills: String(new_creeps),
+    //                     balloon_id: String(balloon_id)
+    //                 })
+    //             }
+    //         })
+    //     }
+    //     , function (error, response, body) {
+    //     });
+};
+
+var notify_refilled = function (balloon_id, user, new_refill) {
+    // request(
+    //     {
+    //         "uri": "https://gcm-http.googleapis.com/gcm/send",
+    //         "method": "POST",
+    //         "header": {
+    //             'Content-Type': 'application/json',
+    //             'Authorization': 'key='+config.web_client_id
+    //         },
+    //         "body": JSON.stringify({
+    //             "to": user.gcm_id,
+    //             "data": {
+    //                 "message": JSON.stringify({
+    //                     type:"refilled",
+    //                     refills: String(new_refill),
+    //                     balloon_id: String(balloon_id)
+    //                 })
+    //
+    //             }
+    //         })
+    //     }
+    //     , function (error, response, body) {
+    //     });
+};
+
+var refill_request = function (user_id, balloon_id, db, res, next) {
     //get send count randomly
     var send_count = config.send_possible_counts[Math.floor(Math.random() * config.send_possible_counts.length)];
     var data = {};
-    Balloon.isRefilledBy(conn, balloon_id, req.user_id)
+    //check user have the balloon and did not refilled it before
+    Balloon.isRefilledBy(db, balloon_id, user_id)
         .then(function (is_refilled) {
             if(is_refilled)
                 return Promise.reject(misc.makeError("User already refilled this balloon"));
@@ -258,67 +378,120 @@ router.post("/refill",function (req, res, next) {
             {
                 return Promise.reject(misc.makeError("User dont have this balloon."));
             }
-            return Balloon.get(db, balloon_id)
+            //get the source user of the balloon
+            return Promise.all([Balloon.get(db, balloon_id), User.get(db, user_id)]);
         })
-        .then(function (source_id){
-            data.source_id = source_id;
-            return conn.beginTransaction()
-        })
-        .then(function () {
-            return User.getRandomWithNoBalloon(db,send_count,balloon_id, data.source_id)
-                .then(function (users) {
+        //get random
+        .spread(function (balloon, user) {
+            data.balloon = balloon;
+            data.user = user;
+            return User.getRandomWithNoBalloon(db,send_count,balloon_id, balloon.user_id)
+                .then(function (rec) {
+                    data.rec = rec;
+                    if(data.rec.length <= 1)
+                    {
+                        return Promise.reject(misc.makeError("Not enough users"));
+                    }
+                    
+                    return db.beginTransaction()
+                        .then(function () {
+                            return Promise.all([Balloon.send(db, data.balloon, user, rec),
+                                Balloon.increment_refilled(db,balloon_id), Balloon.set_refilled(db,balloon_id,user_id)])
+                                .spread(function (sent_at,b,c) {
+                                    data.sent_at = sent_at;
+                                    return db.commit();
+                                })
+                                .catch(function (error) {
+                                    db.rollback().catch(function (err) {misc.logError(err);});
+                                    throw error;
+                                })
+                        })
+
 
                 })
-                .catch(function (error) {
-                    conn.rollback().catch(function (err) {misc.logError(err);});
-                    throw error;
+                .then(function (sent_at) {
+                    res.json({});
+                    finishBalloonRefill(balloon_id);
+                    notifyBalloonSent(balloon_id,data.user, data.rec,data.sent_at );
+                    Balloon.get(db,balloon_id).then(function (balloon) {
+                        notify_refilled(balloon_id, data.balloon.user_id, balloon.refills);
+                    });
                 })
         })
         .catch(function (error) {
-            misc.logError(error);
+            finishBalloonRefill(balloon_id);
+            if (!error.nolog) {
+                misc.logError(error);
+            }
             next(error);
         })
         .finally(function () {
-            conn.connection.release();
+            db.connection.release();
         });
 
-} );
-var notifyBalloonSent = function (balloon, sender, receivers, sent_at) {
-    if(receivers.length == 0)
-        return;
-
-    request(
-        {
-            "uri": "https://gcm-http.googleapis.com/gcm/send",
-            "method": "POST",
-            "header": {
-                'Content-Type': 'application/json',
-                'Authorization': 'key='+config.gcm_token
-            },
-            "body": JSON.stringify({
-                "registration_ids": receivers,
-                "notification": {
-                    "title": "Balloon Received",
-                    "body": "from Tarboosh",
-                    "icon": "",
-                    "sound": "default"
-                },
-                "data": {
-
-                }
-            })
-        }
-        , function (error, response, body) {
-            if(error) {
-
-            }
-            else {
-
-            }
-    });
 };
-var notifyCreeped = function(user_id, balloon_id) {
 
+var setBalloonInProgress = function (balloon_id) {
+    balloons_queue[balloon_id] = {func: null, next: null};
+};
+
+var addRequestToQueue = function (balloon_id, user_id, db, res, next) {
+    //get the queue object
+    var queue = balloons_queue[balloon_id];
+    //create the function to be called when turn comes
+    var func = function () {
+        refill_request(req.user_id, balloon_id, req.db, res, next);
+    };
+    //if the queue next item is an in progress indication
+    if(queue.func == null)
+    {
+        //then only modify the func object to point to the func to be executed
+        queue.func = func;
+    }
+    else {
+        //otherwise create new item and add to tail
+        //fetch the tail first
+        var current = queue;
+        while(current.next)
+        {
+            current = current.next;
+        }
+        //then add the new item to tail
+        current.next = {func: func, next: null};
+    }
+};
+var finishBalloonRefill = function (balloon_id) {
+    processNextInQueue(balloon_id);
+};
+var processNextInQueue = function (balloon_id){
+    var queue = balloons_queue[balloon_id];
+    //is there any func to execute
+    if(queue.func)
+    {
+        //something in queue lets save the func that we will call now
+        var saved_func = queue.func;
+        //fetch the new item in queue
+        var new_queu = queue.new;
+        //if no new after that
+        if(!new_queu)
+        {
+            //then just make the queue indicate that something is in progress
+            //{func:null, next:null}
+            queue.func = null;
+        }
+        else {
+            //something in queue next, lets add it
+            queue.func = new_queu.func;
+            queue.next = new_queu.next;
+        }
+
+        //then we should call our saved func
+        saved_func();
+    }
+    else {
+        //nothing next delete in progress indication of this balloon
+        delete queue;
+    }
 };
 var calculateReach = function (sender, recerivers) {
     return 0;

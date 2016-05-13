@@ -30,6 +30,7 @@ module.exports = function()
                     "`created_at` DATETIME NOT NULL,\n"+
                     "`lng` DECIMAL(9,6) NULL DEFAULT NULL,\n"+
                     "`lat` DECIMAL(8,8) NULL DEFAULT NULL,\n"+
+                    "`gcm_id` VARCHAR(35) NOT NULL,\n"+
                     "PRIMARY KEY (`user_id`),\n"+
                     "UNIQUE INDEX `google_id_UNIQUE` (`google_id` ASC),\n"+
                     "UNIQUE INDEX `facebook_id_UNIQUE` (`facebook_id` ASC),\n"+

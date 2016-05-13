@@ -16,6 +16,9 @@ var misc = require("../utils/misc");
 router.post("/google",pipe, db_middleware, function (req, res, next) {
     var token = req.body.access_token;
     var name = req.body.user_name;
+    var lng = NUMBERreq.body.lng;
+    var lat = req.body.lat;
+    var gcm_id = req.body.gcm_id;
     //check for token in post body
     if(!token)
     {
@@ -29,6 +32,24 @@ router.post("/google",pipe, db_middleware, function (req, res, next) {
         return next(misc.makeError("user_name field not found in POST body"));
     }
 
+    //check for lng & lat in post body
+    if(!lng || !lat)
+    {
+        logger.debug("lng or lat field not found in POST body");
+        return next(misc.makeError("lng or lat field not found in POST body"));
+    }
+
+    //check for gcm in post body
+    if(!gcm_id)
+    {
+        logger.debug("gcm_id field not found in POST body");
+        return next(misc.makeError("gcm_id field not found in POST body"));
+    }
+    lng = Number(lng);
+    lat = Number(lat);
+
+
+
     //verify the token
     googleOauth.verifyIdToken(token,config.web_client_id,function(err, login){
         //is there an error in verification?
@@ -41,7 +62,6 @@ router.post("/google",pipe, db_middleware, function (req, res, next) {
         //get the subject from the token
         var id = login.getPayload().sub;
         //try to search in our database for the token
-        
         var conn = req.db;
         User.findByGoogleId(conn, id)
             .then(function(user){
@@ -54,7 +74,7 @@ router.post("/google",pipe, db_middleware, function (req, res, next) {
                 else
                 {
                     //save the user to database
-                    return User.createWithGoogleId(conn, name, id)
+                    return User.createWithGoogleId(conn, name, id, lng, lat, gcm_id)
                         .then(function(user) {
                             res.json({api_token: creatJWT(user.user_id), created:true});
                         })
@@ -81,7 +101,7 @@ router.get("/test",pipe, db_middleware, function(req,res,next){
         .then(function (user) {
             if(!user)
             {
-                return User.createWithGoogleId(conn, name, null)
+                return User.createWithGoogleId(conn, name, null,0,0,0)
                     .then(function(user) {
                         res.json({api_token: creatJWT(user.user_id), created:true});
                     })

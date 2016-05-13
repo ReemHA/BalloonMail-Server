@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS `balloon`.`user` (
   `created_at` DATETIME NOT NULL,
   `lng` DECIMAL(9,6) NULL DEFAULT NULL,
   `lat` DECIMAL(8,8) NULL DEFAULT NULL,
+  `gcm_id` VARCHAR(35) NOT NULL,
   PRIMARY KEY (`user_id`),
   UNIQUE INDEX `google_id_UNIQUE` (`google_id` ASC),
   UNIQUE INDEX `facebook_id_UNIQUE` (`facebook_id` ASC),
