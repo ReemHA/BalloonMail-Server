@@ -70,6 +70,8 @@ router.post("/google",pipe, db_middleware, function (req, res, next) {
                 {
                     //user found create jwt and return
                     res.json({api_token: creatJWT(user.user_id),created:false});
+                    //update user locations
+                    User.updateLocation(conn, user.user_id, lng, lat);
                 }
                 else
                 {
