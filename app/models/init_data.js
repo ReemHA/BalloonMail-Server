@@ -29,7 +29,7 @@ module.exports = function()
                     "`twitter_id` VARCHAR(45) NULL DEFAULT NULL,\n"+
                     "`created_at` DATETIME NOT NULL,\n"+
                     "`lng` DECIMAL(9,6) NULL DEFAULT NULL,\n"+
-                    "`lat` DECIMAL(8,8) NULL DEFAULT NULL,\n"+
+                    "`lat` DECIMAL(8,6) NULL DEFAULT NULL,\n"+
                     "`gcm_id` VARCHAR(35) NOT NULL,\n"+
                     "PRIMARY KEY (`user_id`),\n"+
                     "UNIQUE INDEX `google_id_UNIQUE` (`google_id` ASC),\n"+
@@ -52,7 +52,7 @@ module.exports = function()
                     "`rank` INT UNSIGNED NOT NULL DEFAULT 0,\n"+
                     "`sentiment` FLOAT NOT NULL DEFAULT 0,\n"+
                     "`lng` DECIMAL(9,6) NULL DEFAULT NULL,\n"+
-                    "`lat` DECIMAL(8,8) NULL DEFAULT NULL,\n"+
+                    "`lat` DECIMAL(8,6) NULL DEFAULT NULL,\n"+
                     "`in_flight` INT UNSIGNED NOT NULL,\n"+
                     "PRIMARY KEY (`balloon_id`),\n"+
                     "INDEX `balloon_user_idx` (`user_id` ASC),\n"+

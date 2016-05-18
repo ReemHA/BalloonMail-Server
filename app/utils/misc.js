@@ -15,9 +15,8 @@ ex.makeError = function (message) {
 };
 
 ex.logError = function (err, non_custom) {
-    if(!non_custom)
+    if(non_custom && err.custom)
     {
-        if(!err.custom)
             return;
     }
     var str = err.message + "\n[\n";
