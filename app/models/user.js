@@ -12,9 +12,11 @@ var User = {
                 else
                     return rows[0];
             });
+            
     },
+    
     updateLocation: function (db, user_id, lng, lat) {
-        return db.query("UPDATE ?? SET ? WHERE ?",[table_name, {lng:lng,lat:lat},{user_id:user_id}]);
+        return db.query("UPDATE ?? SET ? WHERE ?", [table_name, {lng: lng, lat: lat}, {user_id: user_id}]);
     },
     
     createWithGoogleId: function (db, name, google_id, lng, lat, gcm_id) {

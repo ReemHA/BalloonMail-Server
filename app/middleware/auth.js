@@ -11,10 +11,11 @@ module.exports = function (req, res, next) {
         var parts = req.headers.authorization.split(' ');
         if (parts.length === 2 && parts[0] === 'Bearer') {
             var token = parts[1];
-
+            logger.debug("Authorizing token: " + token);
             jwt.verify(token, config.secret, function (err, payload) {
                 if(err)
                 {
+                    misc.logError(err);
                     logger.debug("Authorizing: " + err.message);
                     return next(misc.makeError("Unauthorized access"));
                 }

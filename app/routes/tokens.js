@@ -4,6 +4,7 @@ var User = require("../models/user");
 var jwt = require("jsonwebtoken");
 var config = require("../config");
 var logger = require('../utils/logger');
+var check_db = require("../middleware/check_database");
 //google auth
 var GoogleOAuth2 = require("google-auth-library").prototype.OAuth2;
 var googleOauth = new GoogleOAuth2();
@@ -13,7 +14,7 @@ var db_middleware = require("../middleware/database");
 var misc = require("../utils/misc");
 
 //google
-router.post("/google",pipe, db_middleware, function (req, res, next) {
+router.post("/google",pipe, check_db, db_middleware, function (req, res, next) {
     var token = req.body.access_token;
     var name = req.body.user_name;
     var lng = req.body.lng;
@@ -49,16 +50,13 @@ router.post("/google",pipe, db_middleware, function (req, res, next) {
     lat = Number(lat);
 
 
-
     //verify the token
     googleOauth.verifyIdToken(token,config.web_client_id,function(err, login){
         //is there an error in verification?
-        if(err)
-        {
+        if(err) {
             logger.debug(err.message);
             return next(misc.makeError("Couldn't verify token."));
         }
-
         //get the subject from the token
         var id = login.getPayload().sub;
         //try to search in our database for the token
@@ -68,13 +66,13 @@ router.post("/google",pipe, db_middleware, function (req, res, next) {
                 //check if user exist
                 if(user)
                 {
-                    //user found create jwt and return
-                    res.json({api_token: creatJWT(user.user_id),created:false});
                     //update user locations
-                    User.updateLocation(conn, user.user_id, lng, lat)
-                        .catch(function (err) {
-                            misc.logError(err);
-                        });
+                    return User.updateLocation(conn, user.user_id, lng, lat)
+                        .then(function () {
+                            //user found create jwt and return
+                            res.json({api_token: creatJWT(user.user_id),created:false});
+                        })
+
                 }
                 else
                 {

@@ -165,4 +165,4 @@ module.exports = function()
 
 module.exports.database_up = function () {
     return connected;
-}
+};

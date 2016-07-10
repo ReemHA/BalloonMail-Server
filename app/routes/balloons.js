@@ -33,7 +33,6 @@ router.post("/create",...middle, function (req, res, next) {
     //start transaction
     var data = {
         balloon: null, sender: null, rec: null, sentiment: null, reach: 0, sent_at: null};
-    
     // get user details and select random users to send the balloon to
     Promise.all([User.get(conn,req.user_id), User.getRandom(conn, send_count, req.user_id )])
         .spread(function (sender, receivers) {
@@ -112,10 +111,7 @@ router.post("/create",...middle, function (req, res, next) {
                 })
         })
         .catch(function (error) {
-            if(!error.nolog)
-            {
-                misc.logError(error);
-            }
+            misc.logError(error);
             next(error);
         })
         .finally(function () {
@@ -471,7 +467,7 @@ var processNextInQueue = function (balloon_id){
         //something in queue lets save the func that we will call now
         var saved_func = queue.func;
         //fetch the new item in queue
-        var new_queu = queue.new;
+        var new_queu = queue.next;
         //if no new after that
         if(!new_queu)
         {
