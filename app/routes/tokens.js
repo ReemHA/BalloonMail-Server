@@ -70,7 +70,9 @@ router.post("/google",pipe, check_db, db_middleware, function (req, res, next) {
                     return User.updateLocation(conn, user.user_id, lng, lat)
                         .then(function () {
                             //user found create jwt and return
-                            res.json({api_token: creatJWT(user.user_id),created:false});
+                            var token = creatJWT(user.user_id);
+                            res.json({api_token: token,created:false});
+                            logger.log("Token: " + token);
                         })
 
                 }
@@ -79,7 +81,9 @@ router.post("/google",pipe, check_db, db_middleware, function (req, res, next) {
                     //save the user to database
                     return User.createWithGoogleId(conn, name, id, lng, lat, gcm_id)
                         .then(function(user) {
-                            res.json({api_token: creatJWT(user.user_id), created:true});
+                            var token = creatJWT(user.user_id);
+                            res.json({api_token: token, created:true});
+                            logger.log("Token: " + token);
                         })
                 }
             })

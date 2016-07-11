@@ -15,7 +15,6 @@ module.exports = function (req, res, next) {
             jwt.verify(token, config.secret, function (err, payload) {
                 if(err)
                 {
-                    misc.logError(err);
                     logger.debug("Authorizing: " + err.message);
                     return next(misc.makeError("Unauthorized access"));
                 }
