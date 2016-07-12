@@ -71,8 +71,8 @@ router.post("/google",pipe, check_db, db_middleware, function (req, res, next) {
                         .then(function () {
                             //user found create jwt and return
                             var token = creatJWT(user.user_id);
-                            res.json({api_token: token,created:false});
                             logger.log("Token: " + token);
+                            res.json({api_token: token,created:false});
                         })
 
                 }
@@ -82,8 +82,8 @@ router.post("/google",pipe, check_db, db_middleware, function (req, res, next) {
                     return User.createWithGoogleId(conn, name, id, lng, lat, gcm_id)
                         .then(function(user) {
                             var token = creatJWT(user.user_id);
-                            res.json({api_token: token, created:true});
                             logger.log("Token: " + token);
+                            res.json({api_token: token, created:true});
                         })
                 }
             })
