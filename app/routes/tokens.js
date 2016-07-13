@@ -5,6 +5,7 @@ var jwt = require("jsonwebtoken");
 var config = require("../config");
 var logger = require('../utils/logger');
 var check_db = require("../middleware/check_database");
+var request = require("request");
 //google auth
 var GoogleOAuth2 = require("google-auth-library").prototype.OAuth2;
 var googleOauth = new GoogleOAuth2();
@@ -51,52 +52,69 @@ router.post("/google",pipe, check_db, db_middleware, function (req, res, next) {
 
 
     //verify the token
-    googleOauth.verifyIdToken(token,config.web_client_id,function(err, login){
-        //is there an error in verification?
-        if(err) {
-            logger.debug(err.message);
-            return next(misc.makeError("Couldn't verify token."));
-        }
-        //get the subject from the token
-        var id = login.getPayload().sub;
-        //try to search in our database for the token
-        var conn = req.db;
-        User.findByGoogleId(conn, id)
-            .then(function(user){
-                //check if user exist
-                if(user)
-                {
-                    //update user locations
-                    return User.updateLocation(conn, user.user_id, lng, lat)
-                        .then(function () {
-                            //user found create jwt and return
-                            var token = creatJWT(user.user_id);
-                            logger.log("Token: " + token);
-                            res.json({api_token: token,created:false});
-                        })
+    request('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token='+token, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            var jsn = JSON.parse(body);
+            if(jsn.aud != config.web_client_id){
+                logger.debug("Authorization: Audience doesnt match.");
+                next(misc.makeError("Couldn't verify token."));
+                return;
+            }
 
-                }
-                else
-                {
-                    //save the user to database
-                    return User.createWithGoogleId(conn, name, id, lng, lat, gcm_id)
-                        .then(function(user) {
-                            var token = creatJWT(user.user_id);
-                            logger.log("Token: " + token);
-                            res.json({api_token: token, created:true});
-                        })
-                }
-            })
-            .catch(function(err){
+            var id = jsn.sub;
+            //try to search in our database for the token
+            var conn = req.db;
+            User.findByGoogleId(conn, id)
+                .then(function(user){
+                    //check if user exist
+                    if(user)
+                    {
+                        //update user locations
+                        return User.updateLocation(conn, user.user_id, lng, lat)
+                            .then(function () {
+                                //user found create jwt and return
+                                var token = creatJWT(user.user_id);
+                                res.json({api_token: token,created:false});
+                                logger.debug("Token: " + token);
+                            })
+
+                    }
+                    else
+                    {
+                        //save the user to database
+                        return User.createWithGoogleId(conn, name, id, lng, lat, gcm_id)
+                            .then(function(user) {
+                                var token = creatJWT(user.user_id);
+                                res.json({api_token: token, created:true});
+                                logger.debug("Token: " + token);
+                            })
+                    }
+                })
+                .catch(function(err){
+                    misc.logError(err);
+                    next(misc.makeError("Internal server error."));
+                })
+                .finally(function () {
+                    conn.connection.release();
+                })
+            ;
+        }
+        else {
+            if(error){
+                misc.logError(error);
+                next(misc.makeError("Internal server error."));
+                return;
+            }
+            if(response.statusCode == 400){
+                next(misc.makeError("Couldn't verify token."));
+            }
+            else{
                 misc.logError(err);
                 next(misc.makeError("Internal server error."));
-            })
-            .finally(function () {
-                conn.connection.release();
-            })
-        ;
-
+            }
+        }
     });
+
 
 });
 
