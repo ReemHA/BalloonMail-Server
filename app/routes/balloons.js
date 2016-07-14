@@ -286,7 +286,7 @@ router.post("/refill",...middle,function (req, res, next) {
 } );
 
 var notifyBalloonSent = function (balloon, sender, receivers, sent_at) {
-
+    logger.debug("GCM: notiying sent");
     var message = new gcm.Message({
         data: {
             type:"REC",
@@ -308,6 +308,7 @@ var notifyBalloonSent = function (balloon, sender, receivers, sent_at) {
 
 
 var notifyCreeped = function(user, balloon_id, new_creeps) {
+    logger.debug("GCM: notiying creeped");
     var message = new gcm.Message({
         data: {
             type:"CRP",
@@ -328,6 +329,7 @@ var notifyCreeped = function(user, balloon_id, new_creeps) {
 };
 
 var notify_refilled = function (balloon_id, user, new_refill) {
+    logger.debug("GCM: notiying refilled");
     var message = new gcm.Message({
         data: {
             type:"RFL",
