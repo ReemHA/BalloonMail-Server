@@ -17,9 +17,10 @@ module.exports = function()
             connection = conn;
             return connection.query("CREATE SCHEMA IF NOT EXISTS `"+config.database.name+"` DEFAULT CHARACTER SET utf8 ;");
         })
+
         .then(function (results) {
             return connection.query(
-                "CREATE TABLE IF NOT EXISTS `balloon`.`user` (\n"+
+                "CREATE TABLE IF NOT EXISTS `"+config.database.name+"`.`user` (\n"+
                     "`user_id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,\n"+
                     "`name` VARCHAR(100) NOT NULL,\n"+
                     "`email` VARCHAR(100) NULL DEFAULT NULL,\n"+
@@ -41,7 +42,7 @@ module.exports = function()
         })
         .then(function (results) {
             return connection.query(
-                "CREATE TABLE IF NOT EXISTS `balloon`.`balloons` (\n"+
+                "CREATE TABLE IF NOT EXISTS `"+config.database.name+"`.`balloons` (\n"+
                     "`balloon_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,\n"+
                     "`user_id` INT UNSIGNED NOT NULL,\n"+
                     "`text` VARCHAR(3000) NOT NULL,\n"+
@@ -67,7 +68,7 @@ module.exports = function()
         })
         .then(function (results) {
             return connection.query(
-                "CREATE TABLE IF NOT EXISTS `balloon`.`paths` (\n"+
+                "CREATE TABLE IF NOT EXISTS `"+config.database.name+"`.`paths` (\n"+
                 "`path_id` BIGINT(0) UNSIGNED NOT NULL AUTO_INCREMENT,\n"+
                 "`balloon_id` INT UNSIGNED NOT NULL,\n"+
                 "`from_user` INT UNSIGNED NOT NULL,\n"+
@@ -107,7 +108,7 @@ module.exports = function()
         })
         .then(function (results) {
             return connection.query(
-                "CREATE TABLE IF NOT EXISTS `balloon`.`likes` (\n"+
+                "CREATE TABLE IF NOT EXISTS `"+config.database.name+"`.`likes` (\n"+
                     "`balloon_id` INT UNSIGNED NOT NULL,\n"+
                     "`user_id` INT UNSIGNED NOT NULL,\n"+
                     "`liked_at` DATETIME(0) NOT NULL,\n"+
@@ -129,7 +130,7 @@ module.exports = function()
         })
         .then(function (results) {
             return connection.query(
-                "CREATE TABLE IF NOT EXISTS `balloon`.`creeps` (\n"+
+                "CREATE TABLE IF NOT EXISTS `"+config.database.name+"`.`creeps` (\n"+
                     "`balloon_id` INT UNSIGNED NOT NULL,\n"+
                     "`user_id` INT UNSIGNED NOT NULL,\n"+
                     "`creeped_at` DATETIME(0) NOT NULL,\n"+
