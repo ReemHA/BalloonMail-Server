@@ -31,7 +31,7 @@ app.get("/health", function(req, res){
 //--- routes ---//
 app.use("/token",require("./routes/tokens"));
 app.use("/balloons",require("./routes/balloons"));
-app.use("/refresh_token",require("./routes/balloons"));
+app.use("/refresh_token",require("./routes/refresh_token"));
  
 
 // catch 404 and forward to error handler

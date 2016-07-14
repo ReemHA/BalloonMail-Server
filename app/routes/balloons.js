@@ -287,62 +287,62 @@ router.post("/refill",...middle,function (req, res, next) {
 
 var notifyBalloonSent = function (balloon, sender, receivers, sent_at) {
 
-    // var message = new gcm.Message({
-    //     data: {
-    //         type:"REC",
-    //         lng: String(sender.lng),
-    //         lat: String(sender.lat)
-    //     }
-    // });
-    //
-    // // Set up the sender with your API key, prepare your recipients' registration tokens.
-    // var sender = new gcm.Sender(config.gcm_key);
-    // var regTokens = receivers.map(function(obj){return obj.gcm_id;});
-    //
-    // sender.send(message, { registrationTokens: regTokens }, config.gcm_retry_count, function (err, response) {
-    //     if (err) misc.logError(err);
-    //     else    logger.debug(response);
-    // });
+    var message = new gcm.Message({
+        data: {
+            type:"REC",
+            lng: String(sender.lng),
+            lat: String(sender.lat)
+        }
+    });
+    
+    // Set up the sender with your API key, prepare your recipients' registration tokens.
+    var sender = new gcm.Sender(config.gcm_key);
+    var regTokens = receivers.map(function(obj){return obj.gcm_id;});
+    
+    sender.send(message, { registrationTokens: regTokens }, config.gcm_retry_count, function (err, response) {
+        if (err) misc.logError(err);
+        else    logger.debug(response);
+    });
 
 };
 
 
 var notifyCreeped = function(user, balloon_id, new_creeps) {
-    // var message = new gcm.Message({
-    //     data: {
-    //         type:"CRP",
-    //         creeps: String(new_creeps),
-    //         balloon_id: String(balloon_id)
-    //     }
-    // });
-    //
-    // // Set up the sender with your API key, prepare your recipients' registration tokens.
-    // var sender = new gcm.Sender(config.gcm_key);
-    //
-    // sender.send(message, { to: user.gcm_id }, config.gcm_retry_count, function (err, response) {
-    //     if (err) misc.logError(err);
-    //     else    logger.debug(response);
-    // });
+    var message = new gcm.Message({
+        data: {
+            type:"CRP",
+            creeps: String(new_creeps),
+            balloon_id: String(balloon_id)
+        }
+    });
+    
+    // Set up the sender with your API key, prepare your recipients' registration tokens.
+    var sender = new gcm.Sender(config.gcm_key);
+    
+    sender.send(message, { to: user.gcm_id }, config.gcm_retry_count, function (err, response) {
+        if (err) misc.logError(err);
+        else    logger.debug(response);
+    });
 
 
 };
 
 var notify_refilled = function (balloon_id, user, new_refill) {
-    // var message = new gcm.Message({
-    //     data: {
-    //         type:"RFL",
-    //         refills: String(new_refill),
-    //         balloon_id: String(balloon_id)
-    //     }
-    // });
-    //
-    // // Set up the sender with your API key, prepare your recipients' registration tokens.
-    // var sender = new gcm.Sender(config.gcm_key);
-    //
-    // sender.send(message, { to: user.gcm_id }, config.gcm_retry_count, function (err, response) {
-    //     if (err) misc.logError(err);
-    //     else    logger.debug(response);
-    // });
+    var message = new gcm.Message({
+        data: {
+            type:"RFL",
+            refills: String(new_refill),
+            balloon_id: String(balloon_id)
+        }
+    });
+    
+    // Set up the sender with your API key, prepare your recipients' registration tokens.
+    var sender = new gcm.Sender(config.gcm_key);
+    
+    sender.send(message, { to: user.gcm_id }, config.gcm_retry_count, function (err, response) {
+        if (err) misc.logError(err);
+        else    logger.debug(response);
+    });
 };
 
 var refill_request = function (user_id, balloon_id, db, res, next) {
