@@ -5,7 +5,7 @@ module.exports = {
         port: process.env.DB_PORT || "3306",
         user: "root",
         pass: "root",
-        name: "balloon"
+        name: "balloon_test"
     },
     group_limit: 256,
     send_possible_counts: [2,4],
