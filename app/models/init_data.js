@@ -15,7 +15,7 @@ module.exports = function()
         )
         .then(function (conn) {
             connection = conn;
-            return connection.query("CREATE SCHEMA IF NOT EXISTS `balloon` DEFAULT CHARACTER SET utf8 ;");
+            return connection.query("CREATE SCHEMA IF NOT EXISTS `"+config.database.name+"` DEFAULT CHARACTER SET utf8 ;");
         })
         .then(function (results) {
             return connection.query(
