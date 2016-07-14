@@ -6,7 +6,7 @@ var config = require("../config");
 var logger = require('../utils/logger');
 var check_db = require("../middleware/check_database");
 //google auth
-var GoogleOAuth2 = require("google-auth-library").prototype.OAuth2;
+var GoogleOAuth2 = require("custom_google-auth-library").prototype.OAuth2;
 var googleOauth = new GoogleOAuth2();
 //database connection middleware
 var pipe = require("../middleware/pipe");
