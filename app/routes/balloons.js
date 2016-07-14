@@ -327,7 +327,7 @@ var notifyCreeped = function(user, balloon_id, new_creeps) {
 var notify_refilled = function (balloon_id, user, new_refill) {
     logger.debug("GCM: notiying refilled");
     var message = new gcm.Message();
-    message.addData('type', 'CRP');
+    message.addData('type', 'RFL');
     message.addData('refills', String(new_refill));
     message.addData('balloon_id', String(balloon_id));
     var regTokens = String(user.gcm_id);
