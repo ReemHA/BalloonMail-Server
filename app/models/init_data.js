@@ -60,7 +60,7 @@ module.exports = function()
                     "INDEX `sent_date` (`user_id` ASC, `sent_at` ASC),\n"+
                     "CONSTRAINT `balloon_user`\n"+
                         "FOREIGN KEY (`user_id`)\n"+
-                        "REFERENCES `balloon`.`user` (`user_id`)\n"+
+                        "REFERENCES `"+config.database.name+"`.`user` (`user_id`)\n"+
                         "ON DELETE RESTRICT\n"+
                         "ON UPDATE RESTRICT)\n"+
                 "ENGINE = InnoDB;\n"
@@ -90,17 +90,17 @@ module.exports = function()
                 "UNIQUE INDEX `receive_once` (`balloon_id` ASC, `to_user` ASC),\n"+
                 "CONSTRAINT `liked_balloons`\n"+
                     "FOREIGN KEY (`balloon_id`)\n"+
-                    "REFERENCES `balloon`.`balloons` (`balloon_id`)\n"+
+                    "REFERENCES `"+config.database.name+"`.`balloons` (`balloon_id`)\n"+
                     "ON DELETE RESTRICT\n"+
                     "ON UPDATE RESTRICT,\n"+
                 "CONSTRAINT `sending_user`\n"+
                     "FOREIGN KEY (`from_user`)\n"+
-                    "REFERENCES `balloon`.`user` (`user_id`)\n"+
+                    "REFERENCES `"+config.database.name+"`.`user` (`user_id`)\n"+
                     "ON DELETE RESTRICT\n"+
                     "ON UPDATE RESTRICT,\n"+
                 "CONSTRAINT `receiving_user`\n"+
                     "FOREIGN KEY (`to_user`)\n"+
-                    "REFERENCES `balloon`.`user` (`user_id`)\n"+
+                    "REFERENCES `"+config.database.name+"`.`user` (`user_id`)\n"+
                     "ON DELETE RESTRICT\n"+
                     "ON UPDATE RESTRICT)\n"+
                 "ENGINE = InnoDB;\n"
@@ -117,12 +117,12 @@ module.exports = function()
                     "INDEX `likes_users_idx` (`user_id` ASC),\n"+
                     "CONSTRAINT `liked_balloon`\n"+
                         "FOREIGN KEY (`balloon_id`)\n"+
-                        "REFERENCES `balloon`.`balloons` (`balloon_id`)\n"+
+                        "REFERENCES `"+config.database.name+"`.`balloons` (`balloon_id`)\n"+
                         "ON DELETE RESTRICT\n"+
                         "ON UPDATE RESTRICT,\n"+
                     "CONSTRAINT `liking_users`\n"+
                         "FOREIGN KEY (`user_id`)\n"+
-                        "REFERENCES `balloon`.`user` (`user_id`)\n"+
+                        "REFERENCES `"+config.database.name+"`.`user` (`user_id`)\n"+
                         "ON DELETE RESTRICT\n"+
                         "ON UPDATE RESTRICT)\n"+
                 "ENGINE = InnoDB;\n"
@@ -139,12 +139,12 @@ module.exports = function()
                     "INDEX `creep_users_idx` (`user_id` ASC),\n"+
                     "CONSTRAINT `creeped_balloons`\n"+
                         "FOREIGN KEY (`balloon_id`)\n"+
-                        "REFERENCES `balloon`.`balloons` (`balloon_id`)\n"+
+                        "REFERENCES `"+config.database.name+"`.`balloons` (`balloon_id`)\n"+
                         "ON DELETE RESTRICT\n"+
                         "ON UPDATE RESTRICT,\n"+
                     "CONSTRAINT `creeping_users`\n"+
                         "FOREIGN KEY (`user_id`)\n"+
-                        "REFERENCES `balloon`.`user` (`user_id`)\n"+
+                        "REFERENCES `"+config.database.name+"`.`user` (`user_id`)\n"+
                         "ON DELETE RESTRICT\n"+
                         "ON UPDATE RESTRICT)\n"+
                 "ENGINE = InnoDB;\n"
