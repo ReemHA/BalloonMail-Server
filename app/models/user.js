@@ -18,6 +18,9 @@ var User = {
     updateLocation: function (db, user_id, lng, lat) {
         return db.query("UPDATE ?? SET ? WHERE ?", [table_name, {lng: lng, lat: lat}, {user_id: user_id}]);
     },
+    updateGCMID: function (db, user_id, gcm_id) {
+        return db.query("UPDATE ?? SET ? WHERE ?", [table_name, {gcm_id:gcm_id}, {user_id: user_id}]);
+    },
     
     createWithGoogleId: function (db, name, google_id, lng, lat, gcm_id) {
         return db.query("INSERT INTO ?? SET ?",
@@ -60,7 +63,9 @@ var User = {
             "SELECT `to_user` from ?? WHERE ?) " +
             "AND `user_id` != ? ORDER BY rand() LIMIT ?",
             [table_name,paths_table,{balloon_id:balloon_id},except, number ]);
-    }
+    },
+    
+    
     
 
 
