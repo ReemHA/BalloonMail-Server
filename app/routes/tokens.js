@@ -67,7 +67,7 @@ router.post("/google",pipe, check_db, db_middleware, function (req, res, next) {
                 if(user)
                 {
                     //update user locations
-                    return User.updateLocation(conn, user.user_id, lng, lat)
+                    return User.updateLocation(conn, user.user_id, lng, lat,gcm_id)
                         .then(function () {
                             //user found create jwt and return
                             var token = creatJWT(user.user_id);
