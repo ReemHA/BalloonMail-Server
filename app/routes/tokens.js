@@ -104,7 +104,7 @@ router.get("/test",pipe, db_middleware, function(req,res,next){
     var id = req.query.id;
     var name = req.query.name;
     var conn = req.db;
-    User.get(conn, id)
+    User.get(conn, id, true)
         .then(function (user) {
             if(!user)
             {

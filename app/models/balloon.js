@@ -165,7 +165,7 @@ var Balloon = {
                     , [balloon_table, {balloon_id: balloon_id}]);
             })
             .then(function (result) {
-                balloon = result;
+                balloon = result[0];
                 //update the row
                 return db.query("UPDATE ?? SET creeps = creeps+1 WHERE ?"
                     ,[balloon_table, {balloon_id: balloon_id}])

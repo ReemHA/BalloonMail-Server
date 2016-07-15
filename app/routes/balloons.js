@@ -311,10 +311,9 @@ var notifyCreeped = function(user, balloon_id, new_creeps) {
     message.addData('type', 'CRP');
     message.addData('creeps', String(new_creeps));
     message.addData('balloon_id', String(balloon_id));
-    var regTokens = String(user.gcm_id);
     var sender =  new gcm.Sender(config.gcm_key);
 
-    sender.send(message, regTokens, config.gcm_retry_count,  function (err, response) {
+    sender.send(message,  user.gcm_id, config.gcm_retry_count,  function (err, response) {
         if(err) {
             logger.debug("GCM error: " + err);
         } else {
@@ -330,10 +329,9 @@ var notify_refilled = function (balloon_id, user, new_refill) {
     message.addData('type', 'RFL');
     message.addData('refills', String(new_refill));
     message.addData('balloon_id', String(balloon_id));
-    var regTokens = String(user.gcm_id);
     var sender =  new gcm.Sender(config.gcm_key);
 
-    sender.send(message, regTokens, config.gcm_retry_count,  function (err, response) {
+    sender.send(message, user.gcm_id, config.gcm_retry_count,  function (err, response) {
         if(err) {
             logger.debug("GCM error: " + err);
         } else {

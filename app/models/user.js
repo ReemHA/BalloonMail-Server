@@ -31,12 +31,17 @@ var User = {
             })
     },
 
-    get: function (db, id) {
+    get: function (db, id, null_if_not_exist) {
         return db.query("SELECT `user_id`,`lng`,`lat`,`gcm_id` FROM ?? where `user_id`=?",[table_name, id])
             .then(function (rows) {
                 if(rows.length == 0)
-                    return null;
-                return {user_id: rows[0].user_id, lng: rows[0].lng, lat: rows[0].lat};
+                {
+                    if(null_if_not_exist)
+                        return null;
+                    else
+                        return Promise.reject(misc.makeError("User not found."));
+                }
+                return rows[0];
 
             })
     },
