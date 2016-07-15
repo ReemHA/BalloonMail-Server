@@ -249,7 +249,7 @@ router.post("/creep",...middle, function (req, res, next) {
     Balloon.creep(conn, req.user_id, balloon_id)
         .then(function (balloon) {
             res.json({});
-            User.get(db, balloon.user_id)
+            User.get(conn, balloon.user_id)
                 .then(function (user) {
                     notifyCreeped(user,balloon_id, balloon.creeps+ 1);
                 })
