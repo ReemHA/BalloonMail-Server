@@ -11,7 +11,7 @@ var app = express();
 
 app.use(bodyParser.json());
 app.use(response_time(function(req,res,time) {
-        logger.info("Timing [" +req.url+"]: " + time);
+        logger.info("Timing [" +req.url+"]:  " + time);
 }));
 
 //set required initial database data if not already there
