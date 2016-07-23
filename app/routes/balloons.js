@@ -40,25 +40,15 @@ router.post("/create",...middle, function (req, res, next) {
         .spread(function (sender, receivers) {
             data.rec = receivers;
             data.sender = sender;
-            var in_flight = 0;
-            //check if there is someone to send to
-            if(data.rec.length == 0)
-            {
-                //if no one set increment in_flight value
-                in_flight += 1;
-            }
             //start a transaction
             return conn.beginTransaction()
                 .then(function () {
                     //create balloon
-                    return Balloon.create(conn, data.sender, text, in_flight)
+                    return Balloon.create(conn, data.sender, text)
                         //send
                         .then(function (balloon) {
                             data.balloon = balloon;
-                            //are there users to send to?
-                            if(data.rec.length > 0)
-                                return Balloon.send(conn,data.balloon, data.sender, data.rec);
-                            return null;
+                            return Balloon.send(conn,data.balloon, data.sender, data.rec);
                         })
                         //call alchemy
                         .then(function (sent_at) {

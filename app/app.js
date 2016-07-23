@@ -3,11 +3,16 @@ var logger = require('./utils/logger');
 var bodyParser = require('body-parser');
 var init_database = require("./models/init_data");
 var misc = require("./utils/misc");
+var response_time = require("response-time");
+
 
 //setup express
 var app = express();
-app.use(bodyParser.json());
 
+app.use(bodyParser.json());
+app.use(response_time(function(req,res,time) {
+        logger.info("Timing [" +req.url+"]: " + time);
+}));
 
 //set required initial database data if not already there
 init_database()

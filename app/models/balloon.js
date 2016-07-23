@@ -6,7 +6,7 @@ var like_table = "likes";
 var creep_table = "creeps";
 
 var Balloon = {
-    create: function (db, sender,  text, in_flight) {
+    create: function (db, sender,  text) {
         var sent_at = misc.getDateUTC();
         return db.query("INSERT INTO ?? SET ?",
             [balloon_table, {
@@ -14,12 +14,10 @@ var Balloon = {
                 user_id: sender.user_id,
                 sent_at: sent_at,
                 lng: sender.lng,
-                lat: sender.lat,
-                in_flight: in_flight
+                lat: sender.lat
             }])
             .then(function (rows) {
-                return {balloon_id: rows.insertId, user_id: sender.user_id, text:text, sent_at: sent_at,
-                    in_flight: in_flight}
+                return {balloon_id: rows.insertId, user_id: sender.user_id, text:text, sent_at: sent_at}
             });
     },
 
