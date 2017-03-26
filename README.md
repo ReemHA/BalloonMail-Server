@@ -5,6 +5,31 @@
 Currently the server is deployed on a free cloud service [OpenShift](https://www.openshift.com/). The server url is (app-balloonmail.rhcloud.com), so you can connect the android to the cloud server directly by
 putting the server url in the `server_url` field in the `values/strings` file in the android application.
 
+# Azure
+
+- production server: 
+  - <b>email</b>: tarabishy_2020@hotmail.com
+  - <b> app name</b>: balloonmail
+  - <b> endpoint </b>: https://balloonmail.azurewebsites.net
+- text analytics server: 
+  - <b>email</b>: tarabishysafari@hotmail.com
+  - <b>endpoint</b>: https://westus.api.cognitive.microsoft.com/text/analytics/v2.0
+  - <b>account name</b>: nlp-balloonmail
+  - <b>key1</b>: 025287fda0234d14b4de6250f1e68de2
+  - <b>pass</b>: 7ob
+- prod database:
+  - <b>email</b>: dev_prod_db@hotmail.com
+  - <b>name</b>: balloonmail_prod_db
+  - <b> server name </b>: balloonmail-prod-db.database.windows.net
+  - <b> admin</b>: bmailadmin
+  - <b>pass</b>: Bmailisgreat93
+- test service: 
+  - <b>email</b>: k.eltarabishy@gmail.com
+  - <b> app name</b>: test-balloonmail
+  - <b> endpoint </b>: https://test-balloonmail.azurewebsites.net
+
+
+
 # Setup locally
 
 1. Install [Node.js 64-bit](https://nodejs.org/dist/v4.4.3/node-v4.4.3-x64.msi) or [Node.js 32-bit](https://nodejs.org/dist/v4.4.3/node-v4.4.3-x86.msi)

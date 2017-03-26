@@ -5,6 +5,9 @@
   "scripts": {
     "start": "node --harmony ./app/bin/www.js"
   },
+  "engines": {
+    "node": "6.10.0"
+  },
   "dependencies": {
     "bluebird": "^3.3.5",
     "body-parser": "~1.13.2",
