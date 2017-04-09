@@ -10,8 +10,6 @@ var Promise = require("bluebird");
 var gcm = require("node-gcm");
 
 
-//var Hash = require("hashtable");
-// var balloons_queue = new Hash();
 var balloons_queue = {};
 var misc = require("../utils/misc");
 var watson = require('watson-developer-cloud');

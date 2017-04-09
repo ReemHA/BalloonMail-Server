@@ -1,7 +1,7 @@
 var express = require('express');
 var logger = require('./utils/logger');
 var bodyParser = require('body-parser');
-var init_database = require("./models/init_data");
+var database = require("./models/database");
 var misc = require("./utils/misc");
 var response_time = require("response-time");
 
@@ -10,27 +10,19 @@ var response_time = require("response-time");
 var app = express();
 
 app.use(bodyParser.json());
-app.use(response_time(function(req,res,time) {
+app.use(response_time((req,res,time) =>{
         logger.info("Timing [" +req.url+"]:  " + time);
 }));
 
 //set required initial database data if not already there
-init_database()
-    .then(function (results) {
+database.initialize()
+    .then(() => {
         logger.info("Created and connected to database.");
     })
-    .catch(function (error) {
-        misc.logError(new Error("Couldn't create or connect to database"));
-        misc.logError(error,true);
+    .catch( error => {
+        error.message = "Couldn't create or connect to database [" + error.message + "] ";
+        misc.logError(error);
     });
-
-
-// used by openshift cloud service
-app.get("/health", function(req, res){
-	res.writeHead(200);
-    res.end();
-});
-
 
 
 //--- routes ---//

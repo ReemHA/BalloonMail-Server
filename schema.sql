@@ -1,3 +1,13 @@
+-- INIT DB
+
+IF NOT EXISTS(select * from sys.databases where name='$db_name$')
+BEGIN
+    Create database $db_name$
+END
+
+--- __END__INIT ---
+
+Use $db_name$
 -- -----------------------------------------------------
 -- Table `user`
 -- -----------------------------------------------------
@@ -14,12 +24,17 @@ CREATE TABLE [user] (
   [lat] DECIMAL(8,6) NULL DEFAULT NULL,
   [gcm_id] VARCHAR(35) NOT NULL,
   PRIMARY KEY ([user_id]),
-  CONSTRAINT [google_id_UNIQUE] UNIQUE  ([google_id] ASC),
-  CONSTRAINT [facebook_id_UNIQUE] UNIQUE  ([facebook_id] ASC),
-  CONSTRAINT [twitter_id_UNIQUE] UNIQUE  ([twitter_id] ASC),
   CONSTRAINT [email_UNIQUE] UNIQUE  ([email] ASC))
 ;
 
+CREATE UNIQUE INDEX [google_id_UNIQUE] ON user([google_id] ASC)
+WHERE [google_id] IS NOT NULL
+
+CREATE UNIQUE INDEX [facebook_id_UNIQUE] ON user([facebook_id] ASC)
+WHERE [facebook_id] IS NOT NULL
+
+CREATE UNIQUE INDEX [twitter_id_UNIQUE] ON user([twitter_id] ASC)
+WHERE [twitter_id] IS NOT NULL
 
 -- -----------------------------------------------------
 -- Table `balloons`

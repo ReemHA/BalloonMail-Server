@@ -1,11 +1,18 @@
+var path = require("path")
 module.exports = {
     
     database: {
-        host: process.env.DB_HOST || "localhost",
-        port: process.env.DB_PORT || "3306",
-        user: "root",
-        pass: "root",
-        name: "balloon"
+        host: "localhost",
+        port: "1433",
+        user: "sa",
+        pass: "admin",
+        name: "balloon_mail_db",
+        pool: {
+            max: 30,
+            min: 8,
+            idleTimeoutMillis: 30000
+        },
+        schema_file: path.join(__dirname, "schema.sql")
     },
     group_limit: 256,
     send_possible_counts: [2,4],

@@ -2,12 +2,15 @@ var misc = require("../utils/misc");
 var Promise = require("bluebird");
 var table_name = "user";
 var paths_table="paths";
+var sql = require("mssql");
 
 var User = {
     findByGoogleId: function (db, google_id) {
-        return db.query("SELECT `user_id` FROM ?? WHERE ?",[table_name, {google_id: google_id}])
-            .then(function (rows) {
-                if(rows.length == 0)
+
+        return db.request().query`SELECT [user_id] FROM ${table_name} WHERE [google_id]=${google_id}`
+            .then(function (data) {
+                var raws = data.recordset;
+                if(rowslength == 0)
                     return null;
                 else
                     return rows[0];

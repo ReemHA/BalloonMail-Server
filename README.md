@@ -1,9 +1,5 @@
 [![Build Status](https://jenkins-balloonmail.rhcloud.com/buildStatus/icon?job=balloon)](https://jenkins-balloonmail.rhcloud.com/job/balloon/)
 
-# Server on cloud
-
-Currently the server is deployed on a free cloud service [OpenShift](https://www.openshift.com/). The server url is (app-balloonmail.rhcloud.com), so you can connect the android to the cloud server directly by
-putting the server url in the `server_url` field in the `values/strings` file in the android application.
 
 # Azure
 
@@ -23,10 +19,7 @@ putting the server url in the `server_url` field in the `values/strings` file in
   - <b> server name </b>: balloonmail-prod-db.database.windows.net
   - <b> admin</b>: bmailadmin
   - <b>pass</b>: Bmailisgreat93
-- test service: 
-  - <b>email</b>: k.eltarabishy@gmail.com
-  - <b> app name</b>: test-balloonmail
-  - <b> endpoint </b>: https://test-balloonmail.azurewebsites.net
+
 
 
 

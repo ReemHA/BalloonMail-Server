@@ -10,7 +10,7 @@ var GoogleOAuth2 = require("custom_google-auth-library").prototype.OAuth2;
 var googleOauth = new GoogleOAuth2();
 //database connection middleware
 var pipe = require("../middleware/pipe");
-var db_middleware = require("../middleware/database");
+var db_middleware = require("../middleware/connection");
 var misc = require("../utils/misc");
 
 //google
