@@ -90,11 +90,7 @@ router.post("/google",pipe, check_db, db_middleware, function (req, res, next) {
             .catch(function(err){
                 misc.logError(err);
                 next(misc.makeError("Internal server error."));
-            })
-            .finally(function () {
-                conn.connection.release();
-            })
-        ;
+            });
 
     });
 

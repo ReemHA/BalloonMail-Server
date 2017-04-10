@@ -4,14 +4,16 @@ var bodyParser = require('body-parser');
 var database = require("./models/database");
 var misc = require("./utils/misc");
 var response_time = require("response-time");
+var config = require("./config");
 
 
 //setup express
 var app = express();
 
+
 app.use(bodyParser.json());
 app.use(response_time((req,res,time) =>{
-        logger.info("Timing [" +req.url+"]:  " + time);
+        logger.debug("Timing [" +req.url+"]:  " + time);
 }));
 
 //set required initial database data if not already there

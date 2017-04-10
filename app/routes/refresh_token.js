@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var middle = require("../middleware/middle");
 var User = require("../models/user");
+var misc = require("../utils/misc");
 
 
 router.post("/",...middle, function (req, res, next) {
@@ -19,9 +20,6 @@ router.post("/",...middle, function (req, res, next) {
             misc.logError(err);
             next(misc.makeError("Internal server error."));
         })
-        .finally(function () {
-            conn.connection.release()
-        });
 
 });
 

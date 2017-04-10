@@ -8,14 +8,13 @@ var middle = require("../middleware/middle");
 var logger = require("../utils/logger");
 var Promise = require("bluebird");
 var gcm = require("node-gcm");
+var rp = require('request-promise');
+var sql = require("mssql");
 
 
 var balloons_queue = {};
 var misc = require("../utils/misc");
-var watson = require('watson-developer-cloud');
-var alchemy_language = watson.alchemy_language({
-    api_key: config.alchemy_key
-});
+
 
 
 router.post("/create",...middle, function (req, res, next) {
@@ -30,7 +29,6 @@ router.post("/create",...middle, function (req, res, next) {
     var send_count = config.send_possible_counts[Math.floor(Math.random() * config.send_possible_counts.length)];
 
     var conn = req.db;
-    //start transaction
     var data = {
         balloon: null, sender: null, rec: null, sentiment: null, reach: 0, sent_at: null};
     // get user details and select random users to send the balloon to
@@ -39,8 +37,13 @@ router.post("/create",...middle, function (req, res, next) {
             data.rec = receivers;
             data.sender = sender;
             //start a transaction
-            return conn.beginTransaction()
+            var transaction = new sql.Transaction(conn);
+            let rolled_back = false;
+            return transaction.begin()
                 .then(function () {
+                    transaction.on('rollback', aborted => {
+                        rolled_back = true;
+                    });
                     //create balloon
                     return Balloon.create(conn, data.sender, text)
                         //send
@@ -51,22 +54,31 @@ router.post("/create",...middle, function (req, res, next) {
                         //call alchemy
                         .then(function (sent_at) {
                             data.sent_at = sent_at;
-                            return new Promise(function (resolve, reject) {
-                                alchemy_language.sentiment({text: data.balloon.text}, function (err, response) {
-                                    if (err)
-                                        reject(err);
-                                    else
-                                    {
-                                        var score = response.docSentiment.score;
-                                        if(response.docSentiment.type == "neutral")
-                                            score = 0;
-                                        resolve(score);
-                                    }
-                                });
-                            });
+                            var options = {
+                                method: 'POST',
+                                uri: 'https://westus.api.cognitive.microsoft.com/text/analytics/v2.0',
+                                body:  {
+                                    "documents": [
+                                        {
+                                            "language": "en",
+                                            "id": "1",
+                                            "text": data.balloon.text
+                                        }
+                                    ]
+                                },
+                                json: true, // Automatically stringifies the body to JSON,
+                                headers: {
+                                    "Ocp-Apim-Subscription-Key": config.azure_text_analatycs_key,
+                                    "Content-Type": "application/json",
+                                    "Accept": "application/json"
+                                }
+                            };
+
+                            return rp(options)
                         })
                         //update balloon
-                        .then(function (sentiment) {
+                        .then(function (response) {
+                            var sentiment = Number(response["documents"][0].score);
                             data.sentiment = sentiment;
                             data.reach = calculateReach(data.sender, data.rec);
                             return Balloon.update(conn, data.balloon.balloon_id, {
@@ -76,7 +88,7 @@ router.post("/create",...middle, function (req, res, next) {
                         })
                         //end transaction
                         .then(function () {
-                            return conn.commit()
+                            return transaction.commit()
                         })
                         //notify receivers and send response
                         .then(function () {
@@ -95,7 +107,11 @@ router.post("/create",...middle, function (req, res, next) {
 
                         })
                         .catch(function (error) {
-                            conn.rollback().catch(function (err) {misc.logError(err);});
+                            if(!rolled_back) {
+                                transaction.rollback().catch(function (err) {
+                                    misc.logError(err);
+                                });
+                            }
                             throw error;
                         })
                 })
@@ -104,9 +120,7 @@ router.post("/create",...middle, function (req, res, next) {
             misc.logError(error);
             next(error);
         })
-        .finally(function () {
-            conn.connection.release()
-        });
+
 });
 
 router.get("/sent", ...middle,function (req, res, next) {
@@ -122,9 +136,7 @@ router.get("/sent", ...middle,function (req, res, next) {
             misc.logError(error);
             next(error);
         })
-        .finally(function () {
-            conn.connection.release();
-        });
+
 
 });
 
@@ -141,9 +153,7 @@ router.get("/received", ...middle,function (req, res, next) {
             misc.logError(error);
             next(error);
         })
-        .finally(function () {
-            conn.connection.release();
-        });
+
 
 });
 
@@ -160,9 +170,7 @@ router.get("/liked", ...middle,function (req, res, next) {
             misc.logError(error);
             next(error);
         })
-        .finally(function () {
-            conn.connection.release();
-        });
+
 
 });
 
@@ -176,11 +184,9 @@ router.post("/like",...middle, function (req, res, next) {
     }
 
     var conn = req.db;
-    conn.query("SELECT * FROM `paths` WHERE `to_user` = ? AND `balloon_id` = ?",[req.user_id, balloon_id])
-        .then(function (results) {
-            if(results.length == 0)
-                return Promise.reject(misc.makeError("User dont have this balloon."));
-            return results[0].to_liked;
+    User.getReceivedBalloon()
+        .then(function (balloon) {
+            return balloon.to_liked;
         })
         .then(function (has_liked) {
             if(!has_liked)
@@ -195,9 +201,7 @@ router.post("/like",...middle, function (req, res, next) {
             misc.logError(error);
             next(error);
         })
-        .finally(function () {
-            conn.connection.release();
-        });
+
 
 
 });
@@ -220,9 +224,7 @@ router.get("/paths",...middle, function (req, res, next) {
             misc.logError(error);
             next(error);
         })
-        .finally(function () {
-            conn.connection.release();
-        });
+
 });
 
 router.post("/creep",...middle, function (req, res, next) {
@@ -246,9 +248,7 @@ router.post("/creep",...middle, function (req, res, next) {
             misc.logError(error);
             next(error);
         })
-        .finally(function () {
-            conn.connection.release();
-        });
+
 
 });
 
@@ -389,9 +389,7 @@ var refill_request = function (user_id, balloon_id, db, res, next) {
             }
             next(error);
         })
-        .finally(function () {
-            db.connection.release();
-        });
+
 
 };
 

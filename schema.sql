@@ -11,9 +11,7 @@ Use $db_name$
 -- -----------------------------------------------------
 -- Table `user`
 -- -----------------------------------------------------
-IF (NOT EXISTS (SELECT *
-                 FROM INFORMATION_SCHEMA.TABLES
-                 WHERE  TABLE_NAME = '$db_name$'))
+if not exists (select * from sysobjects where name='user' and xtype='U')
 BEGIN
 
 CREATE TABLE [user] (
@@ -136,27 +134,4 @@ CREATE TABLE likes (
 
 CREATE INDEX [likes_users_idx] ON likes ([user_id] ASC);
 
-
--- -----------------------------------------------------
--- Table `balloon`.`creeps`
--- -----------------------------------------------------
-CREATE TABLE creeps (
-  [balloon_id] INT CHECK ([balloon_id] > 0) NOT NULL,
-  [user_id] INT CHECK ([user_id] > 0) NOT NULL,
-  [creeped_at] DATETIME2(0) NOT NULL,
-  PRIMARY KEY ([balloon_id], [user_id])
- ,
-  CONSTRAINT [creeped_balloons]
-    FOREIGN KEY ([balloon_id])
-    REFERENCES balloons ([balloon_id])
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT [creeping_users]
-    FOREIGN KEY ([user_id])
-    REFERENCES [user] ([user_id])
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-;
-
-CREATE INDEX [creep_users_idx] ON creeps ([user_id] ASC);
 END
