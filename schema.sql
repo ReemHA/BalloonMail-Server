@@ -11,6 +11,11 @@ Use $db_name$
 -- -----------------------------------------------------
 -- Table `user`
 -- -----------------------------------------------------
+IF (NOT EXISTS (SELECT *
+                 FROM INFORMATION_SCHEMA.TABLES
+                 WHERE  TABLE_NAME = '$db_name$'))
+BEGIN
+
 CREATE TABLE [user] (
   [user_id] INT CHECK ([user_id] > 0) NOT NULL IDENTITY,
   [name] VARCHAR(100) NOT NULL,
@@ -27,13 +32,13 @@ CREATE TABLE [user] (
   CONSTRAINT [email_UNIQUE] UNIQUE  ([email] ASC))
 ;
 
-CREATE UNIQUE INDEX [google_id_UNIQUE] ON user([google_id] ASC)
+CREATE UNIQUE INDEX [google_id_UNIQUE] ON [user]([google_id] ASC)
 WHERE [google_id] IS NOT NULL
 
-CREATE UNIQUE INDEX [facebook_id_UNIQUE] ON user([facebook_id] ASC)
+CREATE UNIQUE INDEX [facebook_id_UNIQUE] ON [user]([facebook_id] ASC)
 WHERE [facebook_id] IS NOT NULL
 
-CREATE UNIQUE INDEX [twitter_id_UNIQUE] ON user([twitter_id] ASC)
+CREATE UNIQUE INDEX [twitter_id_UNIQUE] ON [user]([twitter_id] ASC)
 WHERE [twitter_id] IS NOT NULL
 
 -- -----------------------------------------------------
@@ -154,3 +159,4 @@ CREATE TABLE creeps (
 ;
 
 CREATE INDEX [creep_users_idx] ON creeps ([user_id] ASC);
+END

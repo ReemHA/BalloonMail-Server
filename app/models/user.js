@@ -9,8 +9,8 @@ var User = {
 
         return db.request().query`SELECT [user_id] FROM ${table_name} WHERE [google_id]=${google_id}`
             .then(function (data) {
-                var raws = data.recordset;
-                if(rowslength == 0)
+                var rows = data.recordset;
+                if(rows.length == 0)
                     return null;
                 else
                     return rows[0];
@@ -19,24 +19,26 @@ var User = {
     },
     
     updateLocation: function (db, user_id, lng, lat, gcm_id) {
-        return db.query("UPDATE ?? SET ? WHERE ?", [table_name, {lng: lng, lat: lat, gcm_id:gcm_id}, {user_id: user_id}]);
+
+        return db.request().query`
+        UPDATE [${table_name}] SET [lng]=${lng},[lat]= ${lat}, [gcm_id]=${gcm_id}  WHERE [user_id]=${user_id}`;
     },
     updateGCMID: function (db, user_id, gcm_id) {
-        return db.query("UPDATE ?? SET ? WHERE ?", [table_name, {gcm_id:gcm_id}, {user_id: user_id}]);
+        return db.request().query`UPDATE [${table_name}] SET [gcm_id]:${gcm_id} WHERE [user_id]=${user_id}`;
     },
     
     createWithGoogleId: function (db, name, google_id, lng, lat, gcm_id) {
-        return db.query("INSERT INTO ?? SET ?",
-            [table_name, {name: name, google_id: google_id, lng:lng, lat:lat,
-                gcm_id:gcm_id, created_at: misc.getDateUTC()}])
+        return db.request().query`INSERT INTO [${table_name}] SET [name]= ${name}, [google_id]= ${google_id}, [lng]=${lng},
+            [lat]=${lat}, [gcm_id]=${gcm_id}, [created_at]= ${misc.getDateUTC()}; SELECT @@IDENTITY AS id`
             .then(function (results) {
-                return {user_id: results.insertId, name: name};
+                return {user_id: results.recordset[0].id, name: name};
             })
     },
 
     get: function (db, id, null_if_not_exist) {
-        return db.query("SELECT `user_id`,`lng`,`lat`,`gcm_id` FROM ?? where `user_id`=?",[table_name, id])
-            .then(function (rows) {
+        return db.request().query`SELECT [user_id], [lng],[lat],[gcm_id] FROM [${table_name}] where [user_id]=${id}`
+            .then(function (result) {
+                var rows = result.recordset;
                 if(rows.length == 0)
                 {
                     if(null_if_not_exist)
@@ -60,23 +62,17 @@ var User = {
     },
 
     getRandom: function (db, number, except) {
-        return db.query("SELECT `user_id`, `lng`, `lat`,`gcm_id` FROM ?? WHERE `user_id` != ? ORDER BY rand() LIMIT ?",
-            [table_name, except, number]);
+        return db.request().query`SELECT [user_id], [lng], [lat],[gcm_id] FROM [${table_name}]
+            WHERE [user_id] != ${except} ORDER BY rand() LIMIT ${number}`;
 
     },
     
     getRandomWithNoBalloon: function (db, number, balloon_id, except) {
-        return db.query("SELECT `user_id`, `lng`,`lat`,`gcm_id` from ?? " +
-            "WHERE `user_id` NOT IN (" +
-            "SELECT `to_user` from ?? WHERE ?) " +
-            "AND `user_id` != ? ORDER BY rand() LIMIT ?",
-            [table_name,paths_table,{balloon_id:balloon_id},except, number ]);
-    },
-    
-    
-    
-
-
+        return db.request().query`SELECT [user_id], [lng],[lat],[gcm_id] from [${table_name}] 
+             WHERE [user_id] NOT IN (
+             SELECT [to_user] from  ${paths_table} WHERE [balloon_id]=${balloon_id}) 
+             AND [user_id] != ${except} ORDER BY rand() LIMIT ${number}`
+    }
 };
 
 
