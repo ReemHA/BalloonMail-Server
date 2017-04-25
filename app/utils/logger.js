@@ -34,7 +34,7 @@ var localLogger = new winston.Logger({
     emitErrs: false
 });
 localLogger.level = "debug";
-module.exports = process.env.OPENSHIFT_LOG_DIR ? logger:localLogger;
+module.exports = logger;
 module.exports.stream = {
     write: function(message, encoding){
         module.exports.info(message);
