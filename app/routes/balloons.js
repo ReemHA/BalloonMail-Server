@@ -14,7 +14,7 @@ var sql = require("mssql");
 
 var balloons_queue = {};
 var misc = require("../utils/misc");
-
+var GCMSender =  new gcm.Sender(config.gcm_key);
 
 
 router.post("/create",...middle, function (req, res, next) {
@@ -29,6 +29,8 @@ router.post("/create",...middle, function (req, res, next) {
     var send_count = config.send_possible_counts[Math.floor(Math.random() * config.send_possible_counts.length)];
 
     var conn = req.db;
+
+
     var data = {
         balloon: null, sender: null, rec: null, sentiment: null, reach: 0, sent_at: null};
     // get user details and select random users to send the balloon to
@@ -45,18 +47,17 @@ router.post("/create",...middle, function (req, res, next) {
                         rolled_back = true;
                     });
                     //create balloon
-                    return Balloon.create(conn, data.sender, text)
+                    return Balloon.create(transaction, data.sender, text)
                         //send
                         .then(function (balloon) {
                             data.balloon = balloon;
-                            return Balloon.send(conn,data.balloon, data.sender, data.rec);
+                            return Balloon.send(transaction,data.balloon, data.sender, data.rec);
                         })
-                        //call alchemy
                         .then(function (sent_at) {
                             data.sent_at = sent_at;
                             var options = {
                                 method: 'POST',
-                                uri: 'https://westus.api.cognitive.microsoft.com/text/analytics/v2.0',
+                                uri: 'https://westus.api.cognitive.microsoft.com/text/analytics/v2.0/sentiment',
                                 body:  {
                                     "documents": [
                                         {
@@ -78,10 +79,13 @@ router.post("/create",...middle, function (req, res, next) {
                         })
                         //update balloon
                         .then(function (response) {
-                            var sentiment = Number(response["documents"][0].score);
+                            var sentiment = 0.5;
+                            if(response["errors"].length == 0){
+                                sentiment =  Number(response["documents"][0].score);
+                            }
                             data.sentiment = sentiment;
                             data.reach = calculateReach(data.sender, data.rec);
-                            return Balloon.update(conn, data.balloon.balloon_id, {
+                            return Balloon.update(transaction, data.balloon.balloon_id, {
                                 sentiment: sentiment,
                                 reach: data.reach
                             });
@@ -184,26 +188,25 @@ router.post("/like",...middle, function (req, res, next) {
     }
 
     var conn = req.db;
-    User.getReceivedBalloon()
+    var liked = false;
+    User.getReceivedBalloon(conn, req.user_id, balloon_id)
         .then(function (balloon) {
             return balloon.to_liked;
         })
         .then(function (has_liked) {
+            liked = has_liked;
             if(!has_liked)
                 return Balloon.like(conn,req.user_id, balloon_id);
             else
                 return Balloon.unlike(conn,req.user_id, balloon_id);
         })
         .then(function(){
-            res.json({});
+            res.json({"liked":!liked});
         })
         .catch(function (error) {
             misc.logError(error);
             next(error);
         })
-
-
-
 });
 
 router.get("/paths",...middle, function (req, res, next) {
@@ -241,7 +244,11 @@ router.post("/creep",...middle, function (req, res, next) {
             res.json({});
             User.get(conn, balloon.user_id)
                 .then(function (user) {
-                    notifyCreeped(user,balloon_id, balloon.creeps+ 1);
+                    notifyCreeped(user,balloon_id, balloon.creeps);
+                })
+                .catch(error => {
+                    error.message += "Couldn't notify creeped: " + error.message;
+                    misc.logError(error);
                 })
         })
         .catch(function (error) {
@@ -280,9 +287,9 @@ var notifyBalloonSent = function (balloon, sender, receivers, sent_at) {
     message.addData('lng', String(sender.lng));
     message.addData('lat', String(sender.lat));
     var regTokens = receivers.map(function(obj){return obj.gcm_id;});
-    var sender =  new gcm.Sender(config.gcm_key);
 
-    sender.send(message, regTokens, config.gcm_retry_count,  function (err, response) {
+
+    GCMSender.send(message, regTokens, config.gcm_retry_count,  function (err, response) {
         if(err) {
             logger.debug("GCM error: " + err);
         } else {
@@ -301,7 +308,7 @@ var notifyCreeped = function(user, balloon_id, new_creeps) {
     message.addData('balloon_id', String(balloon_id));
     var sender =  new gcm.Sender(config.gcm_key);
 
-    sender.send(message,  user.gcm_id, config.gcm_retry_count,  function (err, response) {
+    GCMSender.send(message,  user.gcm_id, config.gcm_retry_count,  function (err, response) {
         if(err) {
             logger.debug("GCM error: " + err);
         } else {
@@ -319,7 +326,7 @@ var notify_refilled = function (balloon_id, user, new_refill) {
     message.addData('balloon_id', String(balloon_id));
     var sender =  new gcm.Sender(config.gcm_key);
 
-    sender.send(message, user.gcm_id, config.gcm_retry_count,  function (err, response) {
+    GCMSender.send(message, user.gcm_id, config.gcm_retry_count,  function (err, response) {
         if(err) {
             logger.debug("GCM error: " + err);
         } else {
@@ -346,9 +353,11 @@ var refill_request = function (user_id, balloon_id, db, res, next) {
             return Promise.all([Balloon.get(db, balloon_id), User.get(db, user_id)]);
         })
         //get random
-        .spread(function (balloon, user) {
+        .then(function (result) {
+            [balloon, user] = result;
             data.balloon = balloon;
             data.user = user;
+            var rolled_back = false;
             return User.getRandomWithNoBalloon(db,send_count,balloon_id, balloon.user_id)
                 .then(function (rec) {
                     data.rec = rec;
@@ -356,24 +365,33 @@ var refill_request = function (user_id, balloon_id, db, res, next) {
                     {
                         return Promise.reject(misc.makeError("Not enough users"));
                     }
-                    
-                    return db.beginTransaction()
+
+                    var transaction = new sql.Transaction(db);
+                    return transaction.begin()
                         .then(function () {
+                            transaction.on('rollback', aborted => {
+                                rolled_back = true;
+                            });
                             return Promise.all([Balloon.send(db, data.balloon, user, rec),
                                 Balloon.increment_refilled(db,balloon_id), Balloon.set_refilled(db,balloon_id,user_id)])
-                                .spread(function (sent_at,b,c) {
+                                .then(function (result) {
+                                    [sent_at,b,c] = result;
                                     data.sent_at = sent_at;
-                                    return db.commit();
+                                    return transaction.commit();
                                 })
                                 .catch(function (error) {
-                                    db.rollback().catch(function (err) {misc.logError(err);});
+                                    if(!rolled_back) {
+                                        transaction.rollback().catch(function (err) {
+                                            misc.logError(err);
+                                        });
+                                    }
                                     throw error;
                                 })
                         })
 
 
                 })
-                .then(function (sent_at) {
+                .then(function () {
                     res.json({});
                     finishBalloonRefill(balloon_id);
                     notifyBalloonSent(balloon_id,data.user, data.rec,data.sent_at );

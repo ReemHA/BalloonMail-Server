@@ -4,11 +4,14 @@ var balloon_table = "balloons";
 var path_table = "paths";
 var like_table = "likes";
 var creep_table = "creeps";
+var sql = require("mssql");
 
 var Balloon = {
     create: function (db, sender,  text) {
         var sent_at = misc.getDateUTC();
-        return db.request().query(`INSERT INTO [${balloon_table}] SET [text]='${text}', [user_id]= ${sender.user_id},[sent_at]= '${sent_at}', [lng]= ${sender.lng},[lat]= ${sender.lat};SELECT @@IDENTITY AS id`)
+        return db.request().query(`INSERT INTO [${balloon_table}] 
+            ([text], [user_id], [sent_at], [lng], [lat]) VALUES 
+            ('${text}',  ${sender.user_id}, '${sent_at}',${sender.lng},${sender.lat});SELECT @@IDENTITY AS id`)
             .then(function (result) {
                 return {balloon_id: result.recordset[0].id, user_id: sender.user_id, text:text, sent_at: sent_at}
             });
@@ -31,7 +34,7 @@ var Balloon = {
                 ${from_user.lat},
                 ${to_user.lng},
                 ${to_user.lat},
-                '${sent_at})'`;
+                '${sent_at}')`;
 
             if (i < receivers.length -1){
                     strr += ", "
@@ -40,7 +43,7 @@ var Balloon = {
         }
         //insert
         return db.request().query(`INSERT INTO [${path_table}] ([balloon_id], [from_user], 
-            "[to_user], [from_lng], [from_lat], [to_lng], [to_lat], [sent_at] VALUES ${input}`)
+             [to_user], [from_lng], [from_lat], [to_lng], [to_lat], [sent_at]) VALUES ${input}`)
             .then(function (results) {
                     return sent_at;
             });
@@ -67,7 +70,8 @@ var Balloon = {
 
     },
     getSent: function (db, user_id, last_date, limit ) {
-        return db.request().query(`SELECT TOP 1 * FROM [${balloon_table}] WHERE [user_id]=${user_id} AND [sent_at] < '${last_date}';`)
+        return db.request().query(`SELECT TOP ${limit} * FROM [${balloon_table}] WHERE [user_id]=${user_id} 
+                    AND [sent_at] < '${last_date}';`)
             .then(result => {
                return result.recordset;
             });
@@ -105,7 +109,7 @@ var Balloon = {
     },
     like: function (db, user_id, balloon_id) {
         var date = misc.getDateUTC();
-        var transaction = db.Transaction();
+        var transaction = new sql.Transaction(db);
         let rolled_back = false;
         return transaction.begin()
             .then(function () {
@@ -137,7 +141,7 @@ var Balloon = {
     
     unlike: function (db, user_id, balloon_id) {
         var date = misc.getDateUTC();
-        var transaction = db.Transaction();
+        var transaction = new sql.Transaction(db);
         let rolled_back = false;
         return transaction.begin()
             .then(function () {
@@ -168,7 +172,7 @@ var Balloon = {
     creep: function (db, user_id, balloon_id) {
         var date = misc.getDateUTC();
         var balloon = null;
-        var transaction = db.Transaction();
+        var transaction = new sql.Transaction(db);
         let rolled_back = false;
         return transaction.begin()
             .then(function () {
@@ -182,12 +186,12 @@ var Balloon = {
                 if(rows.rowsAffected[0] < 1)
                     return Promise.reject(misc.makeError("Cant creep again."));
                 //lock the row for update
-                return  transaction.request().query(`UPDATE [${balloon_table}] SET [creeps] = [creeps] + 1 " +
-                    OUTPUT inserted.creeps WHERE [balloon_id]=${balloon_id}`)
+                return  transaction.request().query(`UPDATE [${balloon_table}] SET [creeps] = [creeps] + 1 
+                    OUTPUT inserted.creeps, inserted.user_id WHERE [balloon_id]=${balloon_id}`)
             })
             .then(function (result) {
                 return transaction.commit().then(function () {
-                    return result.recordset[0].creeps;
+                    return result.recordset[0];
                 });
             })
             .catch(function (error) {
@@ -200,7 +204,7 @@ var Balloon = {
             })
     },
     getPaths:function (db, balloon_id) {
-        return db.query(`Select [from_user], [from_lat], [from_lng], [to_user], [to_lat], [to_lng] 
+        return db.request().query(`Select [from_user], [from_lat], [from_lng], [to_user], [to_lat], [to_lng] 
             FROM  [${path_table}] WHERE [balloon_id]=${balloon_id}`)
             .then(result => {
                 return result.recordset;
@@ -208,7 +212,8 @@ var Balloon = {
     },
 
     isRefilledBy: function (db, balloon_id, user_id) {
-        return db.query(`Select * from [${path_table}] WHERE [balloon_id] = ${balloon_id} AND [to_user]=${user_id}`)
+        return db.request().query(`Select * from [${path_table}] WHERE [balloon_id] = ${balloon_id} 
+                    AND [to_user]=${user_id}`)
             .then(function (result) {
                 var rows = result.recordset;
                 if(rows.length == 0)
@@ -218,7 +223,7 @@ var Balloon = {
     },
     set_refilled: function(db, balloon_id, user_id)
     {
-        return db.query(`UPDATE [${path_table}] SET [to_refilled]=1 
+        return db.request().query(`UPDATE [${path_table}] SET [to_refilled]=1 
                 WHERE [balloon_id] = ${balloon_id} AND [to_user]=${user_id}`)
             .then(function (result) {
                 if(result.rowsAffected[0] < 1)
@@ -227,7 +232,7 @@ var Balloon = {
             })
     },
     get: function (db, balloon_id) {
-        return db.query(`SELECT * from [${balloon_table}] WHERE [balloon_id] = ${balloon_id}`)
+        return db.request().query(`SELECT * from [${balloon_table}] WHERE [balloon_id] = ${balloon_id}`)
             .then(function (result) {
                 if(result.rowsAffected[0] < 1)
                     return Promise.reject(misc.makeError("Balloon not found"));

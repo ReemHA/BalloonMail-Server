@@ -15,25 +15,47 @@ exports.initialize = function () {
         .then(data => {
             data = data.replace(/\$db_name\$/g, config.database.name);
             [init_script, tables_script] = data.split("--- __END__INIT ---");
-            db.pool = new sql.ConnectionPool({
+            var tmp_pool = new sql.ConnectionPool({
                 user: config.database.user,
                 password: config.database.pass,
                 server: config.database.server,
-                pool: config.database.pool
-
+                pool: {
+                    max: 1,
+                    min: 1,
+                    idleTimeoutMillis: 30000
+                }
             });
-            db.pool.on("error", err => {
+            tmp_pool.on("error", err => {
                 err.message = "Emmited from database [" + err.message + "]";
                 misc.logError(err)
             });
-            return db.pool.connect()
-                .then(() => { return db.pool.request().query(init_script)
+            return tmp_pool.connect()
+                .then(() => { return tmp_pool.request().query(init_script)
                 })
                 .then(() => {
-                    return db.pool.request().query(tables_script)
+                    return tmp_pool.request().query(tables_script)
                 })
-                .then(()=>{
-                    db.is_connected = true
+                .then(()=> {
+                    return tmp_pool.close();
+                })
+                .then(() => {
+                    db.pool = new sql.ConnectionPool({
+                        user: config.database.user,
+                        password: config.database.pass,
+                        server: config.database.server,
+                        pool: config.database.pool,
+                        database:  config.database.name,
+                        options: {
+                            database: config.database.name
+                        }
+                    });
+                    db.pool.on("error", err => {
+                        err.message = "Emmited from database [" + err.message + "]";
+                        misc.logError(err)
+                    });
+                   return db.pool.connect()
+                }).then(() => {
+                    db.is_connected = true;
                 })
 
         })

@@ -10,6 +10,10 @@ var config = require("./config");
 //setup express
 var app = express();
 
+// var jwt = require("jsonwebtoken");
+// console.log(jwt.sign({}, config.secret, {subject:4}));
+
+
 
 app.use(bodyParser.json());
 app.use(response_time((req,res,time) =>{

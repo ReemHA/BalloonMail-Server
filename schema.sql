@@ -15,7 +15,7 @@ if not exists (select * from sysobjects where name='user' and xtype='U')
 BEGIN
 
 CREATE TABLE [user] (
-  [user_id] INT CHECK ([user_id] > 0) NOT NULL IDENTITY,
+  [user_id] INT CHECK ([user_id] >= 0) NOT NULL IDENTITY,
   [name] VARCHAR(100) NOT NULL,
   [email] VARCHAR(100) NULL DEFAULT NULL,
   [password] VARCHAR(100) NULL DEFAULT NULL,
@@ -44,17 +44,16 @@ WHERE [twitter_id] IS NOT NULL
 -- -----------------------------------------------------
 CREATE TABLE balloons (
   [balloon_id] INT CHECK ([balloon_id] > 0) NOT NULL IDENTITY,
-  [user_id] INT CHECK ([user_id] > 0) NOT NULL,
+  [user_id] INT CHECK ([user_id] >= 0) NOT NULL,
   [text] VARCHAR(3000) NOT NULL,
-  [refills] INT CHECK ([refills] > 0) NOT NULL DEFAULT 0,
-  [creeps] INT CHECK ([creeps] > 0) NOT NULL DEFAULT 0,
-  [reach] FLOAT CHECK ([reach] > 0) NOT NULL DEFAULT 0,
+  [refills] INT CHECK ([refills] >= 0) NOT NULL DEFAULT 0,
+  [creeps] INT CHECK ([creeps] >= 0) NOT NULL DEFAULT 0,
+  [reach] FLOAT CHECK ([reach] >= 0) NOT NULL DEFAULT 0,
   [sent_at] DATETIME2(0) NOT NULL,
-  [rank] INT CHECK ([rank] > 0) NOT NULL DEFAULT 0,
+  [rank] INT CHECK ([rank] >= 0) NOT NULL DEFAULT 0,
   [sentiment] FLOAT NOT NULL DEFAULT 0,
   [lng] DECIMAL(9,6) NULL DEFAULT NULL,
-  [lat] DECIMAL(8,6) NULL DEFAULT NULL,
-  [in_flight] INT CHECK ([in_flight] > 0) NOT NULL
+  [lat] DECIMAL(8,6) NULL DEFAULT NULL
  ,
   PRIMARY KEY ([balloon_id])
  ,
@@ -73,12 +72,12 @@ CREATE INDEX [balloon_user_idx] ON balloons ([user_id] ASC);
 -- Table `balloon`.`paths`
 -- -----------------------------------------------------
 CREATE TABLE paths (
-  [path_id] BIGINT CHECK ([path_id] > 0) NOT NULL IDENTITY,
-  [balloon_id] INT CHECK ([balloon_id] > 0) NOT NULL,
-  [from_user] INT CHECK ([from_user] > 0) NOT NULL,
+  [path_id] BIGINT CHECK ([path_id] >= 0) NOT NULL IDENTITY,
+  [balloon_id] INT CHECK ([balloon_id] >= 0) NOT NULL,
+  [from_user] INT CHECK ([from_user] >= 0) NOT NULL,
   [from_lat] DECIMAL(8,6) NULL,
   [from_lng] DECIMAL(9,6) NULL,
-  [to_user] INT CHECK ([to_user] > 0) NOT NULL,
+  [to_user] INT CHECK ([to_user] >= 0) NOT NULL,
   [to_lat] DECIMAL(8,6) NULL,
   [to_lng] DECIMAL(9,6) NULL,
   [sent_at] DATETIME2(0) NOT NULL,
@@ -115,8 +114,8 @@ CREATE INDEX [receive_date] ON paths ([to_user] ASC, [sent_at] ASC);
 -- Table `balloon`.`likes`
 -- -----------------------------------------------------
 CREATE TABLE likes (
-  [balloon_id] INT CHECK ([balloon_id] > 0) NOT NULL,
-  [user_id] INT CHECK ([user_id] > 0) NOT NULL,
+  [balloon_id] INT CHECK ([balloon_id] >= 0) NOT NULL,
+  [user_id] INT CHECK ([user_id] >= 0) NOT NULL,
   [liked_at] DATETIME2(0) NOT NULL,
   PRIMARY KEY ([balloon_id], [user_id])
  ,
