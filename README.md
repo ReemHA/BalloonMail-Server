@@ -19,6 +19,10 @@
   - <b> server name </b>: balloonmail-prod-db.database.windows.net
   - <b> admin</b>: bmailadmin
   - <b>pass</b>: Bmailisgreat93
+  
+- deployer:
+    - <b>user</b>: balloonmail-deployer
+    - <b>pass</b>: BmailDeployer93
 
 
 
