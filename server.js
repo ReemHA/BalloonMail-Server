@@ -11,7 +11,7 @@ var misc = require("./app/utils/misc");
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.OPENSHIFT_NODEJS_PORT || '8080');
+var port = process.env.PORT || normalizePort('8080');
 app.set('port', port);
 
 /**
@@ -24,7 +24,7 @@ var server = http.createServer(app);
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port, process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1");
+server.listen(port,"localhost");
 server.on('error', onError);
 server.on('listening', onListening);
 
