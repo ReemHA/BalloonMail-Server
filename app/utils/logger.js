@@ -1,7 +1,13 @@
 var winston = require('winston');
 winston.emitErrs = false;
 var path = require("path");
-var log_location = path.join(__dirname,"..","..");
+var fs = require('fs');
+var log_location = path.join(process.env.HOME,"LogFiles");
+if (!fs.existsSync(log_location)){
+    fs.mkdirSync(log_location);
+}
+
+
 var logger = new winston.Logger({
     transports: [
         new winston.transports.File({
