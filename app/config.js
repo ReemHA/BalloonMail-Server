@@ -1,17 +1,22 @@
 var path = require("path");
+var db_name = "balloonmail-db";
 module.exports = {
-    
     database: {
         server: "balloonmail-db.database.windows.net",
         port: "1433",
-        user: "bmailadmin",
+        user: "bmail-admin",
         pass: "Bmailisgreat93",
-        name: "balloon_mail_db",
+        name: db_name ,
         pool: {
             max: 30,
             min: 8,
             idleTimeoutMillis: 30000
         },
+        options:{
+            database:db_name,
+            encrypt: true
+        },
+
         schema_file: path.join(__dirname, "..", "schema.sql")
     },
     group_limit: 256,
