@@ -1,10 +1,10 @@
 var path = require("path");
-var db_name = "balloonmail-db";
+var db_name = "balloonmaildb";
 module.exports = {
     database: {
-        server: "balloonmail-db.database.windows.net",
+        server: "bmaildb.database.windows.net",
         port: "1433",
-        user: "bmail-admin",
+        user: "bmailadmin",
         pass: "Bmailisgreat93",
         name: db_name ,
         pool: {

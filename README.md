@@ -15,8 +15,8 @@
   - <b>pass</b>: 7ob
 - prod database:
   - <b>email</b>: dev_prod_db@hotmail.com
-  - <b>name</b>: balloonmail_prod_db
-  - <b> server name </b>: balloonmail-db.database.windows.net
+  - <b>name</b>: balloonmaildb
+  - <b> server name </b>: bmaildb.database.windows.net
   - <b> admin</b>: bmailadmin
   - <b>pass</b>: Bmailisgreat93
   
