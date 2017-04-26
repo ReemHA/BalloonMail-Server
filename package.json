@@ -3,10 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node --harmony ./app/server.js"
+    "start": "node ./app/server.js"
   },
   "engines": {
-    "node": "6.10.2"
+    "node": "6.10.0"
   },
   "dependencies": {
     "bluebird": "^3.3.5",
