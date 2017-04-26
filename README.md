@@ -6,7 +6,7 @@
 - production server: 
   - <b>email</b>: tarabishy_2020@hotmail.com
   - <b> app name</b>: balloonmail
-  - <b> endpoint </b>: https://balloonmail.azurewebsites.net
+  - <b> endpoint </b>: https://balloonmail-app.azurewebsites.net
 - text analytics server: 
   - <b>email</b>: tarabishysafari@hotmail.com
   - <b>endpoint</b>: https://westus.api.cognitive.microsoft.com/text/analytics/v2.0
@@ -16,7 +16,7 @@
 - prod database:
   - <b>email</b>: dev_prod_db@hotmail.com
   - <b>name</b>: balloonmail_prod_db
-  - <b> server name </b>: balloonmail-prod-db.database.windows.net
+  - <b> server name </b>: balloonmail-db.database.windows.net
   - <b> admin</b>: bmailadmin
   - <b>pass</b>: Bmailisgreat93
   

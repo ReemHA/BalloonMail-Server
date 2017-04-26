@@ -23,6 +23,10 @@ exports.initialize = function () {
                     max: 1,
                     min: 1,
                     idleTimeoutMillis: 30000
+                },
+                options: {
+                    encrypt: true
+
                 }
             });
             tmp_pool.on("error", err => {
@@ -46,7 +50,9 @@ exports.initialize = function () {
                         pool: config.database.pool,
                         database:  config.database.name,
                         options: {
-                            database: config.database.name
+                            database: config.database.name,
+                            encrypt: true
+
                         }
                     });
                     db.pool.on("error", err => {

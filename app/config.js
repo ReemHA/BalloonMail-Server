@@ -2,7 +2,7 @@ var path = require("path");
 module.exports = {
     
     database: {
-        server: "balloonmail-prod-db.database.windows.net",
+        server: "balloonmail-db.database.windows.net",
         port: "1433",
         user: "bmailadmin",
         pass: "Bmailisgreat93",
