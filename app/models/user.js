@@ -8,7 +8,7 @@ var sql = require("mssql");
 var User = {
     findByGoogleId: function (db, google_id) {
 
-        return db.request().query(`SELECT [user_id] FROM ${table_name} WHERE [google_id]=${google_id}`)
+        return db.request().query(`SELECT [user_id] FROM [${table_name}] WHERE [google_id]='${google_id}'`)
             .then(function (data) {
                 var rows = data.recordset;
                 if(rows.length == 0)
