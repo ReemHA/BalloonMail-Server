@@ -36,6 +36,10 @@ router.post("/create",...middle, function (req, res, next) {
     // get user details and select random users to send the balloon to
     Promise.all([User.get(conn,req.user_id), User.getRandom(conn, send_count, req.user_id )])
         .spread(function (sender, receivers) {
+            if(receivers.length == 0){
+                next(misc.makeError("There are no users"));
+                return ;
+            }
             data.rec = receivers;
             data.sender = sender;
             //start a transaction
@@ -357,13 +361,15 @@ var refill_request = function (user_id, balloon_id, db, res, next) {
             [balloon, user] = result;
             data.balloon = balloon;
             data.user = user;
+            data.rec = [];
             var rolled_back = false;
+
             return User.getRandomWithNoBalloon(db,send_count,balloon_id, balloon.user_id)
                 .then(function (rec) {
                     data.rec = rec;
                     if(data.rec.length <= 1)
                     {
-                        return Promise.reject(misc.makeError("Not enough users"));
+                        return
                     }
 
                     var transaction = new sql.Transaction(db);
@@ -392,12 +398,20 @@ var refill_request = function (user_id, balloon_id, db, res, next) {
 
                 })
                 .then(function () {
-                    res.json({});
+                    var response = {};
                     finishBalloonRefill(balloon_id);
-                    notifyBalloonSent(balloon_id,data.user, data.rec,data.sent_at );
-                    Balloon.get(db,balloon_id).then(function (balloon) {
-                        notify_refilled(balloon_id, data.balloon.user_id, balloon.refills);
-                    });
+                    if(data.rec.length > 0){
+
+                        notifyBalloonSent(balloon_id,data.user, data.rec,data.sent_at );
+                        Balloon.get(db,balloon_id).then(function (balloon) {
+                            notify_refilled(balloon_id, data.balloon.user_id, balloon.refills);
+                        });
+                    }
+                    else{
+                        response = {full:true};
+                    }
+                    res.json(response);
+
                 })
         })
         .catch(function (error) {

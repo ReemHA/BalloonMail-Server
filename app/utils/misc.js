@@ -32,3 +32,6 @@ ex.logError = function (err, non_custom) {
     logger.error(str);
 
 };
+ex.escapeSQLString = function (str) {
+  return str.replace(/'/g, "''")
+};

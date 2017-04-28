@@ -42,7 +42,7 @@ var User = {
     
     createWithGoogleId: function (db, name, google_id, lng, lat, gcm_id) {
         var query = `INSERT INTO [${table_name}] ([name], [google_id], [lng],[lat],[gcm_id],[created_at])
-            VALUES ('${name}', '${google_id}',${lng},${lat},'${gcm_id}','${misc.getDateUTC()}'); 
+            VALUES ('${misc.escapeSQLString(name)}', '${google_id}',${lng},${lat},'${gcm_id}','${misc.getDateUTC()}'); 
             SELECT @@IDENTITY AS id`;
         return db.request().query(query)
             .then(function (results) {

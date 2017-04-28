@@ -11,7 +11,8 @@ var Balloon = {
         var sent_at = misc.getDateUTC();
         var query = `INSERT INTO [${balloon_table}] 
             ([text], [user_id], [sent_at], [lng], [lat]) VALUES 
-            ('${text}',  ${sender.user_id}, '${sent_at}',${sender.lng},${sender.lat});SELECT @@IDENTITY AS id`;
+            ('${misc.escapeSQLString(text)}',  ${sender.user_id}, 
+            '${sent_at}',${sender.lng},${sender.lat});SELECT @@IDENTITY AS id`;
         return db.request().query(query)
             .then(function (result) {
                 return {balloon_id: result.recordset[0].id, user_id: sender.user_id, text:text, sent_at: sent_at}
