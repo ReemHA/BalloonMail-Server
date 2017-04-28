@@ -26,7 +26,7 @@ CREATE TABLE [user] (
   [lng] DECIMAL(9,6) NULL DEFAULT NULL,
   [lat] DECIMAL(8,6) NULL DEFAULT NULL,
   [gcm_id] VARCHAR(255) NOT NULL,
-  PRIMARY KEY ([user_id])
+  PRIMARY KEY ([user_id]))
 ;
 
 CREATE UNIQUE INDEX [email_UNIQUE] ON [user]([email] ASC)
