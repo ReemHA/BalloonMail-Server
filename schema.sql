@@ -27,8 +27,10 @@ CREATE TABLE [user] (
   [lat] DECIMAL(8,6) NULL DEFAULT NULL,
   [gcm_id] VARCHAR(255) NOT NULL,
   PRIMARY KEY ([user_id]),
-  CONSTRAINT [email_UNIQUE] UNIQUE  ([email] ASC))
 ;
+
+CREATE UNIQUE INDEX [email_UNIQUE] ON [user]([email] ASC)
+WHERE [email] IS NOT NULL
 
 CREATE UNIQUE INDEX [google_id_UNIQUE] ON [user]([google_id] ASC)
 WHERE [google_id] IS NOT NULL
