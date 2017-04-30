@@ -285,7 +285,7 @@ router.post("/refill",...middle,function (req, res, next) {
 } );
 
 var notifyBalloonSent = function (balloon, sender, receivers, sent_at) {
-    logger.debug("GCM: notiying sent");
+    logger.debug("GCM: notiying refill receivers");
     var message = new gcm.Message();
     message.addData('type', 'REC');
     message.addData('lng', String(sender.lng));
@@ -295,9 +295,9 @@ var notifyBalloonSent = function (balloon, sender, receivers, sent_at) {
 
     GCMSender.send(message, regTokens, config.gcm_retry_count,  function (err, response) {
         if(err) {
-            logger.debug("GCM error: " + err);
+            logger.debug("GCM error [refill receivers]: " + err);
         } else {
-            logger.debug("GCM response: " + response);
+            logger.debug("GCM: Notified refill receivers");
         }
     });
 
@@ -314,16 +314,16 @@ var notifyCreeped = function(user, balloon_id, new_creeps) {
 
     GCMSender.send(message,  user.gcm_id, config.gcm_retry_count,  function (err, response) {
         if(err) {
-            logger.debug("GCM error [receivers]: " + err);
+            logger.debug("GCM error [creeped]: " + err);
         } else {
-            logger.debug("GCM: Notified receivers with refill");
+            logger.debug("GCM: Notified creeped");
         }
     });
 
 };
 
 var notify_refilled = function (balloon_id, gcm_id, new_refill) {
-    logger.debug("GCM: notiying refilled");
+    logger.debug("GCM: notiying balloon owner with refill");
     var message = new gcm.Message();
     message.addData('type', 'RFL');
     message.addData('refills', String(new_refill));
