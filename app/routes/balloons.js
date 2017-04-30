@@ -373,28 +373,31 @@ var refill_request = function (user_id, balloon_id, db, res, next) {
             var rolled_back = false;
             var transaction = new sql.Transaction(db);
             return transaction.begin()
+                // transaction start
                 .then(function () {
                     transaction.on('rollback', aborted => {
                         rolled_back = true;
                     });
-                    return Promise.all([
-                        Balloon.send(transaction, data.balloon, user, rec),
-                        Balloon.increment_refilled(transaction, balloon_id),
-                        Balloon.set_refilled(transaction, balloon_id, user_id)
-                    ])
-                })
-                .then(function (result) {
-                    [sent_at,b,c] = result;
-                    data.sent_at = sent_at;
-                    return transaction.commit();
-                })
-                .catch(error => {
-                    if(!rolled_back) {
-                        transaction.rollback().catch(function (err) {
-                            misc.logError(err);
+                    return Balloon.send(transaction, data.balloon, user, rec)
+                        .then(sent_at => {
+                            data.sent_at = sent_at;
+                            return  Balloon.increment_refilled(transaction, balloon_id);
+                        })
+                        .then(() => {
+                            return  Balloon.set_refilled(transaction, balloon_id, user_id);
+                        })
+                        .then(() => {
+                            return transaction.commit();
+                        })
+                        .catch(error => {
+                            if(!rolled_back) {
+                                transaction.rollback().catch(function (err) {
+                                    misc.logError(err);
+                                });
+                            }
+                            throw error;
                         });
-                    }
-                    throw error;
+                    // transaction end
                 })
                 .then(function () {
                     res.json({});
@@ -403,7 +406,7 @@ var refill_request = function (user_id, balloon_id, db, res, next) {
                         notify_refilled(balloon_id, data.balloon.user_id, balloon.refills);
                     });
 
-                })
+                });
         })
         .catch(function (error) {
             misc.logError(error);
