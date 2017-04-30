@@ -401,6 +401,7 @@ var refill_request = function (user_id, balloon_id, db, res, next) {
                 })
                 .then(function () {
                     res.json({});
+                    finishBalloonRefill(balloon_id);
                     notifyBalloonSent(balloon_id, data.user, data.rec,data.sent_at );
                     Balloon.get(db,balloon_id).then(function (balloon) {
                         notify_refilled(balloon_id, data.balloon.user_id, balloon.refills);
@@ -409,11 +410,9 @@ var refill_request = function (user_id, balloon_id, db, res, next) {
                 });
         })
         .catch(function (error) {
+            finishBalloonRefill(balloon_id);
             misc.logError(error);
             next(error);
-        })
-        .finally(()=>{
-            finishBalloonRefill(balloon_id);
         })
 
 
