@@ -361,65 +361,56 @@ var refill_request = function (user_id, balloon_id, db, res, next) {
             [balloon, user] = result;
             data.balloon = balloon;
             data.user = user;
-            data.rec = [];
+            return User.getRandomWithNoBalloon(db, send_count, balloon_id, balloon.user_id)
+        })
+        .then(function (rec) {
+            data.rec = rec;
+            if(data.rec.length == 0)
+            {
+                res.json({full:true});
+                return true;
+            }
             var rolled_back = false;
-
-            return User.getRandomWithNoBalloon(db,send_count,balloon_id, balloon.user_id)
-                .then(function (rec) {
-                    data.rec = rec;
-                    if(data.rec.length <= 1)
-                    {
-                        return
-                    }
-
-                    var transaction = new sql.Transaction(db);
-                    return transaction.begin()
-                        .then(function () {
-                            transaction.on('rollback', aborted => {
-                                rolled_back = true;
-                            });
-                            return Promise.all([Balloon.send(db, data.balloon, user, rec),
-                                Balloon.increment_refilled(db,balloon_id), Balloon.set_refilled(db,balloon_id,user_id)])
-                                .then(function (result) {
-                                    [sent_at,b,c] = result;
-                                    data.sent_at = sent_at;
-                                    return transaction.commit();
-                                })
-                                .catch(function (error) {
-                                    if(!rolled_back) {
-                                        transaction.rollback().catch(function (err) {
-                                            misc.logError(err);
-                                        });
-                                    }
-                                    throw error;
-                                })
-                        })
-
-
-                })
+            var transaction = new sql.Transaction(db);
+            return transaction.begin()
                 .then(function () {
-                    var response = {};
-                    finishBalloonRefill(balloon_id);
-                    if(data.rec.length > 0){
-
-                        notifyBalloonSent(balloon_id,data.user, data.rec,data.sent_at );
-                        Balloon.get(db,balloon_id).then(function (balloon) {
-                            notify_refilled(balloon_id, data.balloon.user_id, balloon.refills);
+                    transaction.on('rollback', aborted => {
+                        rolled_back = true;
+                    });
+                    return Promise.all([
+                        Balloon.send(transaction, data.balloon, user, rec),
+                        Balloon.increment_refilled(transaction, balloon_id),
+                        Balloon.set_refilled(transaction, balloon_id, user_id)
+                    ])
+                })
+                .then(function (result) {
+                    [sent_at,b,c] = result;
+                    data.sent_at = sent_at;
+                    return transaction.commit();
+                })
+                .catch(error => {
+                    if(!rolled_back) {
+                        transaction.rollback().catch(function (err) {
+                            misc.logError(err);
                         });
                     }
-                    else{
-                        response = {full:true};
-                    }
-                    res.json(response);
+                    throw error;
+                })
+                .then(function () {
+                    res.json({});
+                    notifyBalloonSent(balloon_id, data.user, data.rec,data.sent_at );
+                    Balloon.get(db,balloon_id).then(function (balloon) {
+                        notify_refilled(balloon_id, data.balloon.user_id, balloon.refills);
+                    });
 
                 })
         })
         .catch(function (error) {
-            finishBalloonRefill(balloon_id);
-            if (!error.nolog) {
-                misc.logError(error);
-            }
+            misc.logError(error);
             next(error);
+        })
+        .finally(()=>{
+            finishBalloonRefill(balloon_id);
         })
 
 
