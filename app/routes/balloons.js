@@ -314,26 +314,26 @@ var notifyCreeped = function(user, balloon_id, new_creeps) {
 
     GCMSender.send(message,  user.gcm_id, config.gcm_retry_count,  function (err, response) {
         if(err) {
-            logger.debug("GCM error: " + err);
+            logger.debug("GCM error [receivers]: " + err);
         } else {
-            logger.debug("GCM response: " + response);
+            logger.debug("GCM: Notified receivers with refill");
         }
     });
 
 };
 
-var notify_refilled = function (balloon_id, user, new_refill) {
+var notify_refilled = function (balloon_id, gcm_id, new_refill) {
     logger.debug("GCM: notiying refilled");
     var message = new gcm.Message();
     message.addData('type', 'RFL');
     message.addData('refills', String(new_refill));
     message.addData('balloon_id', String(balloon_id));
 
-    GCMSender.send(message, user.gcm_id, config.gcm_retry_count,  function (err, response) {
+    GCMSender.send(message, gcm_id, config.gcm_retry_count,  function (err, response) {
         if(err) {
-            logger.debug("GCM error: " + err);
+            logger.debug("GCM error[owner]: " + err);
         } else {
-            logger.debug("GCM response: " + response);
+            logger.debug("GCM: Notified balloon owner with refill");
         }
     });
 
@@ -410,7 +410,9 @@ var refill_request = function (user_id, balloon_id, db, res, next) {
         })
         .catch(function (error) {
             finishBalloonRefill(balloon_id);
-            misc.logError(error);
+            if(!error.custom){
+                misc.logError(error);
+            }
             next(error);
         })
 

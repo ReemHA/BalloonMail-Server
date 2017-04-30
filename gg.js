@@ -3,7 +3,7 @@ var options = {
     method: 'POST',
     uri: 'https://balloonmail-app.azurewebsites.net/balloons/refill',
     body:  {
-        "balloon_id":5
+        "balloon_id":2
     },
     json: true, // Automatically stringifies the body to JSON,
     headers: {
