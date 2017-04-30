@@ -328,7 +328,6 @@ var notify_refilled = function (balloon_id, user, new_refill) {
     message.addData('type', 'RFL');
     message.addData('refills', String(new_refill));
     message.addData('balloon_id', String(balloon_id));
-    var sender =  new gcm.Sender(config.gcm_key);
 
     GCMSender.send(message, user.gcm_id, config.gcm_retry_count,  function (err, response) {
         if(err) {
@@ -403,8 +402,8 @@ var refill_request = function (user_id, balloon_id, db, res, next) {
                     res.json({});
                     finishBalloonRefill(balloon_id);
                     notifyBalloonSent(balloon_id, data.user, data.rec,data.sent_at );
-                    Balloon.get(db,balloon_id).then(function (balloon) {
-                        notify_refilled(balloon_id, data.balloon.user_id, balloon.refills);
+                    User.getGCMIdForBalloonOwner(db,balloon_id).then(function (user) {
+                        notify_refilled(balloon_id, user.gcm_id, balloon.refills);
                     });
 
                 });

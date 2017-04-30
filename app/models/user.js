@@ -1,6 +1,7 @@
 var misc = require("../utils/misc");
 var Promise = require("bluebird");
 var table_name = "user";
+var balloon_table = "balloons";
 var paths_table="paths";
 var sql = require("mssql");
 
@@ -107,7 +108,23 @@ var User = {
                 err.message = "In User getReceivedBalloon:  \n" + query +"\n\n" + err.message;
                 throw err;
             });
+    },
+
+    getGCMIdForBalloonOwner: function (db, balloon_id) {
+        var query = `SELECT [gcm_id] FROM [${table_name}] [us]
+                    INNER JOIN [${balloon_table}] [ba]
+                        ON [balloon_id] = ${balloon_id} and [ba].[user_id] = [us].[user_id]`;
+        return db.request().query(query)
+            .then(result => {
+                if(result.rowsAffected[0] < 1)
+                    return Promise.reject(misc.makeError("Error in gcm query"));
+                return result.recordset[0];
+            }).catch(err => {
+                err.message = "In User getGCMIdForBalloonOwner:  \n" + query +"\n\n" + err.message;
+                throw err;
+            });
     }
+
 
 
 };
