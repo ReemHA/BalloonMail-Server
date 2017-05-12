@@ -428,7 +428,7 @@ var addRequestToQueue = function (balloon_id, user_id, db, res, next) {
     var queue = balloons_queue[balloon_id];
     //create the function to be called when turn comes
     var func = function () {
-        refill_request(req.user_id, balloon_id, req.db, res, next);
+        refill_request(user_id, balloon_id, db, res, next);
     };
     //if the queue next item is an in progress indication
     if(queue.func == null)
@@ -468,9 +468,7 @@ var processNextInQueue = function (balloon_id){
             queue.func = null;
         }
         else {
-            //something in queue next, lets add it
-            queue.func = new_queu.func;
-            queue.next = new_queu.next;
+            balloons_queue[balloon_id] = new_queu;
         }
 
         //then we should call our saved func
