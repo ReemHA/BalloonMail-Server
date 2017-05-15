@@ -477,7 +477,7 @@ var processNextInQueue = function (balloon_id){
     }
     else {
         //nothing next delete in progress indication of this balloon
-        delete queue;
+        delete balloons_queue[balloon_id];
     }
 };
 var calculateReach = function (sender, recerivers) {
