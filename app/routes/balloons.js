@@ -367,6 +367,7 @@ var refill_request = function (user_id, balloon_id, db, res, next) {
             if(data.rec.length == 0)
             {
                 res.json({full:true});
+                finishBalloonRefill(balloon_id);
                 return true;
             }
             var rolled_back = false;
