@@ -74,13 +74,13 @@ var Balloon = {
     },
     increment_refilled: function (db, balloon_id) {
         var query = `UPDATE [${balloon_table}] 
-                                SET [refills] = [refills]+1 WHERE [balloon_id]=${balloon_id}`;
+                                SET [refills] = [refills]+1 OUTPUT inserted.refills WHERE [balloon_id]=${balloon_id}`;
         return db.request().query(query)
             .then(function (results) {
 
                 if(results.rowsAffected[0] < 1)
                     return Promise.reject(misc.makeError("Balloon not found"));
-                return true;
+                return results.recordset[0].refills;
             }).catch(err => {
                 err.message = "In Balloon increment_refilled: \n" + query +"\n\n" + err.message;
                 throw err;

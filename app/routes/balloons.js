@@ -383,7 +383,8 @@ var refill_request = function (user_id, balloon_id, db, res, next) {
                             data.sent_at = sent_at;
                             return  Balloon.increment_refilled(transaction, balloon_id);
                         })
-                        .then(() => {
+                        .then((refills) => {
+                            data.balloon.refills = refills;
                             return  Balloon.set_refilled(transaction, balloon_id, user_id);
                         })
                         .then(() => {
@@ -404,7 +405,7 @@ var refill_request = function (user_id, balloon_id, db, res, next) {
                     finishBalloonRefill(balloon_id);
                     notifyBalloonSent(balloon_id, data.user, data.rec,data.sent_at );
                     User.getGCMIdForBalloonOwner(db,balloon_id).then(function (user) {
-                        notify_refilled(balloon_id, user.gcm_id, balloon.refills);
+                        notify_refilled(balloon_id, user.gcm_id, data.balloon.refills);
                     });
 
                 });
