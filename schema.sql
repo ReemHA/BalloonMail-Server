@@ -16,7 +16,7 @@ BEGIN
 
 CREATE TABLE [user] (
   [user_id] INT CHECK ([user_id] >= 0) NOT NULL IDENTITY,
-  [name] VARCHAR(100) NOT NULL,
+  [name] NVARCHAR(100) NOT NULL,
   [email] VARCHAR(100) NULL DEFAULT NULL,
   [password] VARCHAR(100) NULL DEFAULT NULL,
   [google_id] VARCHAR(255) NULL DEFAULT NULL,
@@ -47,7 +47,7 @@ WHERE [twitter_id] IS NOT NULL
 CREATE TABLE balloons (
   [balloon_id] INT CHECK ([balloon_id] > 0) NOT NULL IDENTITY,
   [user_id] INT CHECK ([user_id] >= 0) NOT NULL,
-  [text] VARCHAR(3000) NOT NULL,
+  [text] NVARCHAR(3000) NOT NULL,
   [refills] INT CHECK ([refills] >= 0) NOT NULL DEFAULT 0,
   [creeps] INT CHECK ([creeps] >= 0) NOT NULL DEFAULT 0,
   [reach] FLOAT CHECK ([reach] >= 0) NOT NULL DEFAULT 0,

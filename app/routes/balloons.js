@@ -15,7 +15,7 @@ var sql = require("mssql");
 var balloons_queue = {};
 var misc = require("../utils/misc");
 var GCMSender =  new gcm.Sender(config.gcm_key);
-
+var arabic_pattern = /[\u0600-\u06FF\u0750-\u077F\ufb50-\ufc3f\ufe70-\ufefc]/;
 
 router.post("/create",...middle, function (req, res, next) {
     var text = req.body.text;
@@ -59,6 +59,12 @@ router.post("/create",...middle, function (req, res, next) {
                         })
                         .then(function (sent_at) {
                             data.sent_at = sent_at;
+                            if(arabic_pattern.test(data.balloon.text)){
+                                return {
+                                    documents: [{score: "0.5" }],
+                                    errors: []
+                                };
+                            }
                             var options = {
                                 method: 'POST',
                                 uri: 'https://westus.api.cognitive.microsoft.com/text/analytics/v2.0/sentiment',
