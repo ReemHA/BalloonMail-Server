@@ -87,7 +87,7 @@ var User = {
     getRandomWithNoBalloon: function (db, number, balloon_id, except) {
         var query = `SELECT TOP ${number} [user_id], [lng],[lat],[gcm_id] from [${table_name}] 
               WHERE [user_id] NOT IN(SELECT [to_user] from  [${paths_table}] WHERE [balloon_id]=${balloon_id}) 
-             and [user_id] != ${except} ORDER BY newid()`;
+             and [user_id] != ${except} ORDER BY RAND()`;
         return db.request().query(query)
             .then(result => {
                 return result.recordset;
